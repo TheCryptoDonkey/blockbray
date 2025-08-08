@@ -7,7 +7,19 @@
   <meta property="og:title" content="The Crypto Donkey – Play on Spotify" />
   <meta property="og:description" content="Opening the track in Spotify…" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://i.scdn.co/image/ab67616d0000b273000000000000000000000000" />
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh; margin:0; background:#0b0b0b; color:#fff;
+    }
+    .card{ text-align:center; max-width:520px; padding:28px; border-radius:16px; background:#121212; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+    .btn{ display:inline-block; padding:14px 18px; border-radius:999px; background:#1DB954; color:#000; font-weight:700; text-decoration:none; }
+    .small{ opacity:.7; font-size:12px; margin-top:12px; }
+  </style>
+
+  <!-- Meta Pixel -->
   <script>
     !(function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -17,36 +29,32 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)})(window,document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', 'YOUR_PIXEL_ID');
+    fbq('init', '3718618815109659');
     fbq('track', 'PageView');
   </script>
-  <style>
-    :root { color-scheme: dark; }
-    body{font-family: system-ui,-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0b0b0b;color:#fff;}
-    .card{text-align:center;max-width:520px;padding:28px;border-radius:16px;background:#121212;box-shadow:0 10px 30px rgba(0,0,0,.35);}
-    .btn{display:inline-block;padding:14px 18px;border-radius:999px;background:#1DB954;color:#000;font-weight:700;text-decoration:none;}
-    .small{opacity:.7;font-size:12px;margin-top:12px;}
-  </style>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=3718618815109659&ev=PageView&noscript=1"
+  /></noscript>
+
   <script>
-    const trackId = "REPLACE_WITH_CRYPTO_DONKEY_TRACK_ID";
-    const utm = "utm_source=ig&utm_medium=ad&utm_campaign=cryptodonkey_ep";
+    const trackId = "7CXHAS76d157HvNmlbOdCW";
+    const utm = "utm_source=ig&utm_medium=ad&utm_campaign=crypto_donkey_single";
     const appUrl = `spotify://track/${trackId}`;
     const webUrl = `https://open.spotify.com/track/${trackId}?${utm}`;
     function openSpotify(){
-      const start = Date.now();
-      try { window.location.href = appUrl; } catch(e) {}
-      setTimeout(function(){ if (Date.now() - start < 1500) window.location.replace(webUrl); }, 800);
+      const t = Date.now();
+      try{ location.href = appUrl; }catch(e){}
+      setTimeout(()=>{ if(Date.now()-t < 1500) location.replace(webUrl); }, 800);
     }
-    window.addEventListener('load', openSpotify);
+    addEventListener('load', openSpotify);
   </script>
 </head>
 <body>
   <div class="card">
     <h1>Opening in Spotify…</h1>
     <p>If nothing happens in a second, tap the button below.</p>
-    <p><a class="btn" href="#">Open in Spotify</a></p>
-    <p class="small"><a style="color:#8ab4ff" href="#">Open web player instead</a></p>
+    <p><a class="btn" href="spotify://track/7CXHAS76d157HvNmlbOdCW">Open in Spotify</a></p>
+    <p class="small"><a style="color:#8ab4ff" href="https://open.spotify.com/track/7CXHAS76d157HvNmlbOdCW?utm_source=ig&utm_medium=ad&utm_campaign=crypto_donkey_single">Open web player instead</a></p>
   </div>
 </body>
 </html>
