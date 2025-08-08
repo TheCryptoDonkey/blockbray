@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Opening Spotify… The Crypto Donkey</title>
+  <meta property="og:title" content="The Crypto Donkey – Play on Spotify" />
+  <meta property="og:description" content="Opening the track in Spotify…" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://i.scdn.co/image/ab67616d0000b273000000000000000000000000" />
+  <script>
+    !(function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)})(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'YOUR_PIXEL_ID');
+    fbq('track', 'PageView');
+  </script>
+  <style>
+    :root { color-scheme: dark; }
+    body{font-family: system-ui,-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0b0b0b;color:#fff;}
+    .card{text-align:center;max-width:520px;padding:28px;border-radius:16px;background:#121212;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+    .btn{display:inline-block;padding:14px 18px;border-radius:999px;background:#1DB954;color:#000;font-weight:700;text-decoration:none;}
+    .small{opacity:.7;font-size:12px;margin-top:12px;}
+  </style>
+  <script>
+    const trackId = "REPLACE_WITH_CRYPTO_DONKEY_TRACK_ID";
+    const utm = "utm_source=ig&utm_medium=ad&utm_campaign=cryptodonkey_ep";
+    const appUrl = `spotify://track/${trackId}`;
+    const webUrl = `https://open.spotify.com/track/${trackId}?${utm}`;
+    function openSpotify(){
+      const start = Date.now();
+      try { window.location.href = appUrl; } catch(e) {}
+      setTimeout(function(){ if (Date.now() - start < 1500) window.location.replace(webUrl); }, 800);
+    }
+    window.addEventListener('load', openSpotify);
+  </script>
+</head>
+<body>
+  <div class="card">
+    <h1>Opening in Spotify…</h1>
+    <p>If nothing happens in a second, tap the button below.</p>
+    <p><a class="btn" href="#">Open in Spotify</a></p>
+    <p class="small"><a style="color:#8ab4ff" href="#">Open web player instead</a></p>
+  </div>
+</body>
+</html>
