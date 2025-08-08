@@ -4,9 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Opening Spotify… The Crypto Donkey</title>
+  <meta name="robots" content="noindex,nofollow" />
   <meta property="og:title" content="The Crypto Donkey – Play on Spotify" />
   <meta property="og:description" content="Opening the track in Spotify…" />
   <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://open.spotify.com" crossorigin>
+  <link rel="dns-prefetch" href="//open.spotify.com">
   <style>
     :root { color-scheme: dark; }
     body{
@@ -37,24 +40,60 @@
   /></noscript>
 
   <script>
+    // Build destination URLs
     const trackId = "7CXHAS76d157HvNmlbOdCW";
-    const utm = "utm_source=ig&utm_medium=ad&utm_campaign=crypto_donkey_single";
     const appUrl = `spotify://track/${trackId}`;
-    const webUrl = `https://open.spotify.com/track/${trackId}?${utm}`;
-    function openSpotify(){
-      const t = Date.now();
-      try{ location.href = appUrl; }catch(e){}
-      setTimeout(()=>{ if(Date.now()-t < 1500) location.replace(webUrl); }, 800);
+    const webBase = new URL(`https://open.spotify.com/track/${trackId}`);
+
+    // Preserve incoming UTMs/fbclid/etc; add defaults if missing
+    const incoming = new URLSearchParams(window.location.search);
+    const defaults = new URLSearchParams({
+      utm_source: 'meta',
+      utm_medium: 'ad',
+      utm_campaign: 'crypto_donkey_single'
+    });
+    for (const [k,v] of defaults) {
+      if (!incoming.has(k)) incoming.set(k,v);
     }
-    addEventListener('load', openSpotify);
+    for (const [k,v] of incoming) webBase.searchParams.set(k,v);
+
+    // Track an attempt and handle deep-link with graceful fallback
+    let wentBackground = false;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) wentBackground = true; // likely switched to Spotify
+    });
+
+    function tryOpen() {
+      fbq('trackCustom','AttemptDeepLink', { dest: 'spotify_app' });
+      // Give the pixel a brief moment to flush before attempting the app open
+      setTimeout(() => {
+        // Attempt deep link
+        try { window.location.href = appUrl; } catch(e) {}
+        // If the app doesn't open (tab stays visible), go to web after ~1.2s
+        setTimeout(() => {
+          if (!wentBackground) {
+            fbq('trackCustom','FallbackToWeb', { dest: 'spotify_web' });
+            window.location.replace(webBase.toString());
+          }
+        }, 1200);
+      }, 300);
+    }
+
+    window.addEventListener('load', tryOpen);
   </script>
 </head>
 <body>
   <div class="card">
     <h1>Opening in Spotify…</h1>
-    <p>If nothing happens in a second, tap the button below.</p>
-    <p><a class="btn" href="spotify://track/7CXHAS76d157HvNmlbOdCW">Open in Spotify</a></p>
-    <p class="small"><a style="color:#8ab4ff" href="https://open.spotify.com/track/7CXHAS76d157HvNmlbOdCW?utm_source=ig&utm_medium=ad&utm_campaign=crypto_donkey_single">Open web player instead</a></p>
+    <p>If nothing happens in a second, tap a button below.</p>
+    <p>
+      <a class="btn" href="spotify://track/7CXHAS76d157HvNmlbOdCW" rel="noreferrer noopener"
+         onclick="fbq('trackCustom','FallbackClick',{dest:'app'})">Open in Spotify</a>
+    </p>
+    <p class="small">
+      <a style="color:#8ab4ff" href="https://open.spotify.com/track/7CXHAS76d157HvNmlbOdCW" rel="noreferrer noopener"
+         onclick="fbq('trackCustom','FallbackClick',{dest:'web'})">Open web player instead</a>
+    </p>
   </div>
 </body>
 </html>
