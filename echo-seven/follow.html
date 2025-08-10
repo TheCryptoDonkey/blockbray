@@ -24,6 +24,9 @@
     .hint { font-size:12px; opacity:.75; margin-top:6px; }
     .small { font-size:12px; opacity:.7; margin-top:12px; }
     .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+      .row { display:flex; gap:10px; align-items:center; justify-content:center; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:999px; background:#2a2a2a; color:#fff; font-size:13px; cursor:pointer; border:1px solid #3a3a3a; }
+    .pill:hover { filter:brightness(1.08); }
   </style>
   <script>
     // --- Config ---
@@ -102,32 +105,64 @@
     function setupAudioPreview(){
       const audio = document.getElementById('preview');
       const state = document.getElementById('previewState');
+      const unmuteBtn = document.getElementById('unmuteBtn');
       if (!audio) return;
 
-      // Start muted-ish for gentle fade-in
-      audio.volume = 0;
+      // Start muted for autoplay compliance; we'll unmute on first gesture or button click
+      audio.muted = true;
+      audio.volume = 1; // actual loudness will be controlled after unmute via fade
 
-      // Label updates
       const setState = (txt) => { if (state) state.textContent = txt; };
-      audio.addEventListener('play', ()=> setState('Now playing preview…'));
+
+      audio.addEventListener('play', ()=> setState(audio.muted ? 'Preview is muted — turn sound on?' : 'Now playing preview…'));
       audio.addEventListener('pause', ()=> setState('Preview paused'));
       audio.addEventListener('ended', ()=> setState('Preview ended'));
 
-      const tryPlay = () => audio.play().then(()=>fadeVolume(audio, 1, 500)).catch(()=>{});
-      tryPlay();
-
-      // If blocked, start on first user gesture
-      const start = () => { tryPlay(); cleanup(); };
-      const cleanup = () => {
-        window.removeEventListener('pointerdown', start, true);
-        window.removeEventListener('touchstart', start, true);
-        window.removeEventListener('keydown', start, true);
-        window.removeEventListener('scroll', start, true);
+      const unmute = () => {
+        if (!audio.muted) return;
+        audio.muted = false;
+        // gentle fade from 0 to 1
+        const startV = 0; audio.volume = startV;
+        const to = 1; const ms = 500; const t0 = performance.now();
+        function step(t){
+          const p = Math.min(1, (t - t0) / ms);
+          audio.volume = startV + (to-startV)*p;
+          if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+        setState('Now playing preview…');
+        if (unmuteBtn) unmuteBtn.classList.add('hide');
+        cleanupGesture();
       };
-      window.addEventListener('pointerdown', start, true);
-      window.addEventListener('touchstart', start, true);
-      window.addEventListener('keydown', (e)=>{ if (e.code==='Space'||e.code==='Enter') start(); }, true);
-      window.addEventListener('scroll', start, true);
+
+      if (unmuteBtn) unmuteBtn.addEventListener('click', (e)=>{ e.preventDefault(); unmute(); });
+
+      // Try immediate autoplay (muted)
+      audio.play().catch(()=>{});
+
+      // Unmute on first user gesture that's not a follow click
+      const onGesture = (e) => {
+        const id = (e.target && e.target.id) || '';
+        if (id === 'btnApple' || id === 'btnSpotify') { cleanupGesture(); return; }
+        unmute();
+      };
+      function cleanupGesture(){
+        window.removeEventListener('pointerdown', onGesture, true);
+        window.removeEventListener('touchstart', onGesture, true);
+        window.removeEventListener('keydown', onGesture, true);
+        window.removeEventListener('scroll', onGesture, true);
+      }
+      window.addEventListener('pointerdown', onGesture, true);
+      window.addEventListener('touchstart', onGesture, true);
+      window.addEventListener('keydown', (e)=>{
+        if (e.code==='Space'||e.code==='Enter') onGesture(e);
+      }, true);
+      window.addEventListener('scroll', onGesture, true);
+
+      // Pause preview when tab is hidden
+      document.addEventListener('visibilitychange', ()=>{
+        if (document.visibilityState === 'hidden') { try{ audio.pause(); }catch(_){} }
+      });
     }
 
     document.addEventListener('DOMContentLoaded', ()=>{
@@ -135,8 +170,11 @@
       const mount = document.getElementById('teaserMount');
       if (mount){
         mount.innerHTML = `
-          <audio id="preview" src="preview.mp3" preload="auto" controls controlslist="nodownload noplaybackrate"></audio>
-          <div id="previewState" class="hint" aria-live="polite">Loading preview…</div>`;
+          <audio id="preview" src="preview.mp3" preload="auto" controls autoplay muted playsinline controlslist="nodownload noplaybackrate"></audio>
+          <div class="row">
+            <div id="previewState" class="hint" aria-live="polite">Preview is muted — turn sound on?</div>
+            <button id="unmuteBtn" class="pill" type="button" aria-label="Unmute preview">🔊 Sound on</button>
+          </div>`;
       }
       setupAudioPreview();
 
