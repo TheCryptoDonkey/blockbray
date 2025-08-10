@@ -106,7 +106,7 @@
       if (inNewTab) window.open(webUrl, '_blank', 'noopener'); else location.href = webUrl;
     }
 
-    function openApple(){{
+    function openApple(){
       pausePreview();
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isIOS){ location.href = url; return; }
