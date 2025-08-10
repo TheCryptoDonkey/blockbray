@@ -14,21 +14,17 @@
     .card { background:#121212; padding:28px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); max-width:760px; text-align:center; }
     h1 { font-size:28px; margin:0 0 10px; }
     p.lead { opacity:.9; margin:0 0 16px; }
-    .status { font-size:14px; opacity:.9; margin:6px 0 14px; }
+    .status { font-size:14px; opacity:.9; margin:6px 0 14px; min-height:1.2em; }
     .btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
     .btn { padding:14px 18px; border-radius:999px; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
     .btn-apple { background:#fff; color:#000; }
     .btn-spotify { background:#1DB954; color:#000; }
-    .prefs { display:flex; gap:10px; justify-content:center; margin-top:10px; font-size:13px; opacity:.95; }
     .small { font-size:12px; opacity:.7; margin-top:12px; }
     .tip { background:#1a1a1a; border:1px solid #2a2a2a; padding:10px; border-radius:10px; font-size:13px; margin:10px auto; max-width:620px; text-align:left; }
     .hide { display:none !important; }
-    .follow { margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    #followBar { position:fixed; left:0; right:0; bottom:0; display:none; gap:10px; padding:12px; background:rgba(0,0,0,.8); border-top:1px solid #2a2a2a; justify-content:center; }
-    #followBar.show { display:flex; }
-    #spotifyFollowEmbed { border:0; width:320px; height:56px; }
   </style>
   <script>
+    // ===== Config (can also be provided via config.json if you prefer) =====
     const cfg = {
       utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_latitude_daze",
       spotifyTrackId: "1Non9dMlsEcC5Mavv684al",
@@ -36,52 +32,92 @@
       spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       appleArtistPath: "artist/echo-seven/1827674820",
       preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" },
-      defaultStorefront: "gb",
-      goal: "auto",
-      promptAfterMs: 12000,
-      followOnReturn: true,
-      enableSpotifyWebFollowEmbedOnDesktop: true
+      defaultStorefront: "gb"
     };
-    const UA = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/i.test(UA);
+
+    // ===== Robust environment detection =====
+    const UA = navigator.userAgent || navigator.vendor || window.opera || "";
+    const isIPadOSDesktop = /Macintosh/i.test(UA) && (('ontouchend' in document) || (navigator.maxTouchPoints>1));
+    const isIOS = /iPad|iPhone|iPod/i.test(UA) || isIPadOSDesktop;
     const isAndroid = /Android/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
-    const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB/i.test(UA);
+    const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB|Line\/|TikTok|Twitter/i.test(UA);
+
+    // ===== Helpers =====
     function resolveStorefront(){
       const params = new URLSearchParams(location.search);
-      if (params.get('sf')) return params.get('sf').toLowerCase();
-      return (navigator.language.split('-')[1] || cfg.defaultStorefront).toLowerCase();
+      const forced = (params.get('sf')||'').toLowerCase();
+      if (forced) return forced.slice(0,2);
+      const lang = (navigator.language||'').toLowerCase();
+      const m = /[-_]([a-z]{2,3})$/.exec(lang);
+      return (m?m[1]:(cfg.defaultStorefront||'us')).toLowerCase();
     }
+
     function buildUrls(){
       const sf = resolveStorefront();
       return {
+        // Track
         spotifyTrackApp: `spotify://track/${cfg.spotifyTrackId}`,
         spotifyTrackWeb: `https://open.spotify.com/track/${cfg.spotifyTrackId}?${cfg.utm}`,
-        spotifyArtistApp: `spotify://artist/${cfg.spotifyArtistId}`,
-        spotifyArtistWeb: `https://open.spotify.com/artist/${cfg.spotifyArtistId}?${cfg.utm}`,
         appleTrack: `https://music.apple.com/${sf}/${cfg.appleSongPath}?${cfg.utm}`,
-        appleArtist: `https://music.apple.com/${sf}/${cfg.appleArtistPath}?${cfg.utm}`
+        // Artist (for follow)
+        spotifyArtistApp: cfg.spotifyArtistId ? `spotify://artist/${cfg.spotifyArtistId}` : "",
+        spotifyArtistWeb: cfg.spotifyArtistId ? `https://open.spotify.com/artist/${cfg.spotifyArtistId}?${cfg.utm}` : "",
+        appleArtist: cfg.appleArtistPath ? `https://music.apple.com/${sf}/${cfg.appleArtistPath}?${cfg.utm}` : ""
       };
     }
+
     function openSpotify(target){
       const u = buildUrls();
-      location.href = target==='artist'?u.spotifyArtistApp:u.spotifyTrackApp;
-      setTimeout(()=>location.href = target==='artist'?u.spotifyArtistWeb:u.spotifyTrackWeb,800);
+      const appUri = target==='artist' && u.spotifyArtistApp ? u.spotifyArtistApp : u.spotifyTrackApp;
+      const webUrl = target==='artist' && u.spotifyArtistWeb ? u.spotifyArtistWeb : u.spotifyTrackWeb;
+      if (isIOS){
+        const t = Date.now();
+        try{ location.href = appUri; }catch(e){}
+        setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
+        return;
+      }
+      if (isAndroid){
+        const intent = target==='artist' && u.spotifyArtistWeb
+          ? `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(u.spotifyArtistWeb)};end`
+          : `intent://track/${cfg.spotifyTrackId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(u.spotifyTrackWeb)};end`;
+        location.href = intent; return;
+      }
+      location.href = webUrl; // desktop
     }
+
     function openApple(target){
       const u = buildUrls();
-      location.href = target==='artist'?u.appleArtist:u.appleTrack;
+      // Universal links on iOS open the app if installed; else web.
+      // Same URL is fine for desktop too.
+      const url = target==='artist' && u.appleArtist ? u.appleArtist : u.appleTrack;
+      if (isAndroid){
+        const intent = `intent://${url.replace(/^https:\/\//,'')}` +
+          `#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+        location.href = intent; return;
+      }
+      location.href = url;
     }
+
     function smartOpen(){
-      if(isInApp) return;
-      const target = localStorage.getItem('hasOpenedOnce')?'artist':'track';
-      localStorage.setItem('hasOpenedOnce','1');
-      if((isIOS && cfg.preferServiceByPlatform.iOS==='apple') || (!isAndroid && cfg.preferServiceByPlatform.Desktop==='apple')) openApple(target);
+      if (isInApp) return; // IG/FB in-app often block deep links; let user tap
+      const params = new URLSearchParams(location.search);
+      const overridePref = params.get('pref'); // 'apple' | 'spotify'
+      const storedPref = localStorage.getItem('preferredService');
+      const platformDefault = isIOS ? cfg.preferServiceByPlatform.iOS : isAndroid ? cfg.preferServiceByPlatform.Android : cfg.preferServiceByPlatform.Desktop;
+      const initialPref = (overridePref==='apple'||overridePref==='spotify') ? overridePref : (storedPref || platformDefault);
+
+      const returning = !!localStorage.getItem('hasOpenedOnce');
+      const target = returning ? 'artist' : 'track';
+      localStorage.setItem('hasOpenedOnce', '1');
+
+      if (initialPref === 'apple') openApple(target);
       else openSpotify(target);
     }
-    document.addEventListener('DOMContentLoaded',()=>{
-      document.getElementById('btnApple').onclick=()=>openApple('track');
-      document.getElementById('btnSpotify').onclick=()=>openSpotify('track');
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.getElementById('btnApple').addEventListener('click', ()=>openApple('track'));
+      document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify('track'));
       smartOpen();
     });
   </script>
@@ -96,22 +132,7 @@
       <button id="btnApple" class="btn btn-apple">Open in Apple Music</button>
       <button id="btnSpotify" class="btn btn-spotify">Open in Spotify</button>
     </div>
-    <div class="prefs">
-      <label><input type="radio" name="svc" value="apple"> Apple Music</label>
-      <label><input type="radio" name="svc" value="spotify"> Spotify</label>
-      <label><input id="remember" type="checkbox"> Remember</label>
-    </div>
-    <div id="followRow" class="follow hide">
-      <a id="followApple" class="btn btn-apple hide" href="#">Follow on Apple Music</a>
-      <a id="followSpotify" class="btn btn-spotify hide" href="#">Follow on Spotify</a>
-    </div>
     <p class="small">Direct links: <a href="https://music.apple.com/gb/artist/echo-seven/1827674820">Apple Music</a> · <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u">Spotify</a></p>
-  </div>
-  <div id="followBar">
-    <span>Like it? Follow Echo Seven:</span>
-    <a class="btn btn-apple" href="https://music.apple.com/gb/artist/echo-seven/1827674820">Apple Music</a>
-    <a class="btn btn-spotify" href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u">Spotify</a>
-    <iframe id="spotifyFollowEmbed" src="https://open.spotify.com/follow/1/?uri=spotify:artist:1xdDfEI9pjuEXglEaK8k4u&size=detail&theme=dark"></iframe>
   </div>
 </body>
 </html>
