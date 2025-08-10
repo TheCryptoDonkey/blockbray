@@ -47,7 +47,11 @@
     const isAndroid = /Android/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
     const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB/i.test(UA);
-    function resolveStorefront(){ return (navigator.language.split('-')[1] || cfg.defaultStorefront).toLowerCase(); }
+    function resolveStorefront(){
+      const params = new URLSearchParams(location.search);
+      if (params.get('sf')) return params.get('sf').toLowerCase();
+      return (navigator.language.split('-')[1] || cfg.defaultStorefront).toLowerCase();
+    }
     function buildUrls(){
       const sf = resolveStorefront();
       return {
