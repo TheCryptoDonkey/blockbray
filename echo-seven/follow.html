@@ -22,71 +22,90 @@
     .small { font-size:12px; opacity:.7; margin-top:12px; }
   </style>
   <script>
+    // --- Config ---
     const cfg = {
       utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_follow",
       spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
+      spotifyTrackId: "1Non9dMlsEcC5Mavv684al",
+      appleAlbumTrackEmbed: "https://embed.music.apple.com/gb/album/latitude-daze-euro-disco-mix/1827825001?i=1827825008",
       preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" }
     };
 
+    // --- Env detection ---
     const UA = navigator.userAgent || navigator.vendor || window.opera || "";
     const isIPadOSDesktop = /Macintosh/i.test(UA) && (("ontouchend" in document) || (navigator.maxTouchPoints>1));
     const isIOS = /iPad|iPhone|iPod/i.test(UA) || isIPadOSDesktop;
     const isAndroid = /Android/i.test(UA);
-    const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB|Line\/|TikTok|Twitter/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
 
-    function appendUtm(url){
-      return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url;
-    }
+    function appendUtm(url){ return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url; }
 
+    // --- Follow handlers ---
     function openSpotify(inNewTab=false){
-      const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
+      // iOS: do NOT deep-link; stay on web to avoid auto-opening the app
       if (isIOS){
-        const t = Date.now();
-        try{ location.href = appUri; }catch(e){}
-        setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
-      } else if (isAndroid){
+        location.href = webUrl;
+        return;
+      }
+      if (isAndroid){
         const intent = `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
         location.href = intent;
-      } else {
-        if (inNewTab) {
-          window.open(webUrl, '_blank');
-        } else {
-          location.href = webUrl;
-        }
+        return;
       }
+      // Desktop behaviour unchanged; optional new tab
+      if (inNewTab) window.open(webUrl, '_blank', 'noopener');
+      else location.href = webUrl;
+    }
+
+          }
     }
 
     function openApple(){
+      // iOS: use the EMBED domain to avoid Universal Links auto-opening the Music app
+      // This keeps users on the web unless they choose "Open in Music" inside the embed.
+      if (isIOS){
+        const embedUrl = appendUtm(cfg.appleArtistFullUrl.replace('https://music.apple.com','https://embed.music.apple.com'));
+        location.href = embedUrl;
+        return;
+      }
+      // Android: use intent with fallback to full web artist page
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isAndroid){
         const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
         location.href = intent;
-      } else {
-        location.href = url;
+        return;
       }
+      // Desktop: go to full web artist page
+      location.href = url;
     }
 
-    function smartOpen(){
-      if (isInApp) return;
-      const storedPref = localStorage.getItem('preferredService');
-      const pref = storedPref || cfg.preferServiceByPlatform[isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'];
-      localStorage.setItem('hasOpenedOnce', '1');
-      if (pref === 'apple') {
-        openApple();
-      } else if (isDesktop) {
-        openSpotify(true);
-      } else {
-        openSpotify();
-      }
-    }
+        }
 
     document.addEventListener('DOMContentLoaded', ()=>{
-      document.getElementById('btnApple').addEventListener('click', ()=>openApple());
-      document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify());
-      smartOpen();
+      // Buttons
+      document.getElementById('btnApple').addEventListener('click', openApple);
+      document.getElementById('btnSpotify').addEventListener('click', ()=>{
+        // On desktop, open Spotify in a new tab so this page stays available
+        openSpotify(isDesktop);
+      });
+
+      // Auto-render teaser player with the right embed
+      const mount = document.getElementById('teaserMount');
+      if (mount){
+        if (isIOS){
+          mount.innerHTML = `
+            <iframe src="${cfg.appleAlbumTrackEmbed}" width="100%" height="175" frameborder="0"
+              allow="autoplay *; encrypted-media *; fullscreen *" style="max-width:660px;border-radius:12px;"
+              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"></iframe>`;
+        } else {
+          mount.innerHTML = `
+            <iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="152" frameborder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
+        }
+      }
+      // No auto-redirects
     });
   </script>
 </head>
@@ -94,7 +113,7 @@
   <div class="card">
     <h1>Follow Echo Seven</h1>
     <p class="lead">Listen now and follow Echo Seven on your favourite music service.</p>
-    <iframe src="https://open.spotify.com/embed/track/1Non9dMlsEcC5Mavv684al" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+    <div id="teaserMount" aria-live="polite"></div>
     <div class="btns">
       <button id="btnApple" class="btn btn-apple">Follow on Apple Music</button>
       <button id="btnSpotify" class="btn btn-spotify">Follow on Spotify</button>
