@@ -87,16 +87,9 @@
       // Auto-render teaser player with the right embed
       const mount = document.getElementById('teaserMount');
       if (mount){
-        if (isIOS){
-          mount.innerHTML = `
-            <iframe src="${cfg.appleAlbumTrackEmbed}" width="100%" height="175" frameborder="0"
-              allow="autoplay *; encrypted-media *; fullscreen *" style="max-width:660px;border-radius:12px;"
-              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"></iframe>`;
-        } else {
-          mount.innerHTML = `
-            <iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="152" frameborder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
-        }
+        mount.innerHTML = `
+          <iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="152" frameborder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
       }
       // No auto-redirects
     });
