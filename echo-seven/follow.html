@@ -170,14 +170,9 @@
       const mount = document.getElementById('teaserMount');
       if (mount){
         mount.innerHTML = `
-          <audio id="preview" src="preview.mp3" preload="auto" controls autoplay muted playsinline controlslist="nodownload noplaybackrate"></audio>
-          <div class="row">
-            <div id="previewState" class="hint" aria-live="polite">Preview is muted — turn sound on?</div>
-            <button id="unmuteBtn" class="pill" type="button" aria-label="Unmute preview">🔊 Sound on</button>
-          </div>`;
+          <iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="80" frameborder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
       }
-      setupAudioPreview();
-
       // Button actions
       document.getElementById('btnApple').addEventListener('click', openApple);
       document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop));
