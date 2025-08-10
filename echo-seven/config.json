@@ -1,0 +1,13 @@
+{
+  "utm": "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_latitude_daze",
+  "spotifyTrackId": "1Non9dMlsEcC5Mavv684al",
+  "appleSongPath": "song/latitude-daze-euro-disco-mix/1827825008",
+  "spotifyArtistId": "1xdDfEI9pjuEXglEaK8k4u",
+  "appleArtistPath": "artist/echo-seven/1827674820",
+  "preferServiceByPlatform": { "iOS": "apple", "Android": "spotify", "Desktop": "spotify" },
+  "defaultStorefront": "gb",
+  "goal": "auto",
+  "promptAfterMs": 12000,
+  "followOnReturn": true,
+  "enableSpotifyWebFollowEmbedOnDesktop": true
+}
