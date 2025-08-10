@@ -25,9 +25,7 @@
       box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.02);
       padding:clamp(18px, 2.4vw, 32px); text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px;
       border:1px solid var(--ring);
-    }
-    .cover{ width:110px; height:110px; object-fit:cover; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.5); display:block; }
-    h1{ margin:0; font-weight:800; letter-spacing:.2px; font-size:clamp(22px, 3.4vw, 36px); }
+    }    h1{ margin:0; font-weight:800; letter-spacing:.2px; font-size:clamp(22px, 3.4vw, 36px); }
     .lead{ margin:4px 0 4px; opacity:.88; font-size:clamp(14px, 1.5vw, 16px); }
 
     /* Buttons */
@@ -119,26 +117,6 @@
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', ()=>{
-      // Optional cover art
-      const cover = document.getElementById('cover');
-      async function fetchSpotifyThumb(){
-        try{
-          const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(`https://open.spotify.com/track/${cfg.spotifyTrackId}`)}`;
-          const res = await fetch(url, { mode: 'cors' });
-          if(!res.ok) throw new Error('oembed fetch failed');
-          const data = await res.json();
-          if (data && data.thumbnail_url){ cover.src = data.thumbnail_url; cover.style.display='block'; return; }
-          cover.remove();
-        }catch(e){ cover.remove(); }
-      }
-      if (cover){
-        const params = new URLSearchParams(location.search);
-        const override = params.get('cover');
-        if (override){ cover.src = decodeURIComponent(override); }
-        // If local EchoSevenLatitudeDaze.png 404s, try Spotify oEmbed thumbnail as graceful fallback
-        cover.onerror = ()=>{ fetchSpotifyThumb(); };
-      }
-
       // Buttons
       document.getElementById('btnApple').addEventListener('click', openApple);
       document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop));
@@ -161,8 +139,7 @@
 </head>
 <body>
   <div class="card">
-    <img id="cover" class="cover" src="EchoSevenLatitudeDaze.png" alt="Album art for “Latitude Daze (Euro Disco Mix)” by Echo Seven" loading="eager" />
-    <h1>Follow Echo Seven</h1>
+        <h1>Follow Echo Seven</h1>
     <p class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
 
     <div class="btns">
