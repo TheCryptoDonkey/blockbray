@@ -41,12 +41,15 @@
 
     function appendUtm(url){ return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url; }
 
-    // --- Follow handlers (no auto-open on iOS) ---
+    // --- Follow handlers — deep link on iOS (on click) ---
     function openSpotify(inNewTab=false){
+      const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
       if (isIOS){
-        // Stay on web on iOS to avoid deep-link auto-open
-        location.href = webUrl;
+        // Try the Spotify app first; if it doesn't fire quickly, fall back to the web artist page
+        const t = Date.now();
+        try { location.href = appUri; } catch(e) {}
+        setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
         return;
       }
       if (isAndroid){
@@ -59,14 +62,33 @@
       else location.href = webUrl;
     }
 
-    function openApple(){
-      if (isIOS){
-        // Use embed domain to keep users in-browser; they can choose "Open in Music" from the embed
-        const embedUrl = appendUtm(cfg.appleArtistFullUrl.replace('https://music.apple.com','https://embed.music.apple.com'));
-        location.href = embedUrl;
+          if (isAndroid){
+        const intent = `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+        location.href = intent;
         return;
       }
+      // Desktop: optionally new tab
+      if (inNewTab) window.open(webUrl, '_blank', 'noopener');
+      else location.href = webUrl;
+    }
+
+    function openApple(){
       const url = appendUtm(cfg.appleArtistFullUrl);
+      if (isIOS){
+        // Use the universal link so it opens the Apple Music app if installed; else stays on the web
+        location.href = url;
+        return;
+      }
+      if (isAndroid){
+        const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+        location.href = intent;
+        return;
+      }
+      // Desktop
+      location.href = url;
+    }
+
+          const url = appendUtm(cfg.appleArtistFullUrl);
       if (isAndroid){
         const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
         location.href = intent;
@@ -84,12 +106,43 @@
         openSpotify(isDesktop);
       });
 
-      // Auto-render teaser player with the right embed
+      // Auto-render teaser player with Spotify embed via IFrame API (so we can play after a user gesture)
       const mount = document.getElementById('teaserMount');
       if (mount){
-        mount.innerHTML = `
-          <iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="152" frameborder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
+        // Load Spotify IFrame API
+        const api = document.createElement('script');
+        api.src = 'https://open.spotify.com/embed/iframe-api/v1';
+        api.async = true;
+        document.head.appendChild(api);
+
+        window.onSpotifyIframeApiReady = (IFrameAPI) => {
+          const options = { uri: `spotify:track:${cfg.spotifyTrackId}` };
+          IFrameAPI.createController(mount, options, (EmbedController) => {
+            window._spotifyEmbedController = EmbedController;
+            // Optional: no need to show controls overlay; the embed renders its own UI
+          });
+        };
+
+        // "Soft autoplay": start preview on the FIRST user gesture (tap/click/keydown) that's not on a follow button
+        const startPreview = (e) => {
+          // Ignore clicks on follow buttons to avoid delaying navigation
+          const id = (e.target && e.target.id) || '';
+          if (id === 'btnApple' || id === 'btnSpotify') return cleanup();
+          if (window._spotifyEmbedController && window._spotifyEmbedController.play){
+            try { window._spotifyEmbedController.play(); } catch(_) {}
+          }
+          cleanup();
+        };
+        const cleanup = () => {
+          window.removeEventListener('pointerdown', startPreview, true);
+          window.removeEventListener('keydown', startPreview, true);
+          window.removeEventListener('touchstart', startPreview, true);
+        };
+        window.addEventListener('pointerdown', startPreview, true);
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space' || e.code === 'Enter') startPreview(e);
+        }, true);
+        window.addEventListener('touchstart', startPreview, true);
       }
       // No auto-redirects
     });
