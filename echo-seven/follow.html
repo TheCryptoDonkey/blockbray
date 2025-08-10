@@ -80,9 +80,23 @@
       const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
       if (isIOS){
-        const t = Date.now();
-        try { location.href = appUri; } catch(e) {}
-        setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
+        // iOS: try to open the app; ONLY fall back to web if the page never hid (app didn't open)
+        let fallbackTimer;
+        const cancelFallback = () => {
+          if (fallbackTimer) clearTimeout(fallbackTimer);
+          document.removeEventListener('visibilitychange', onVisibility);
+          window.removeEventListener('pagehide', cancelFallback);
+          window.removeEventListener('blur', cancelFallback);
+        };
+        const onVisibility = () => { if (document.hidden) cancelFallback(); };
+        document.addEventListener('visibilitychange', onVisibility);
+        window.addEventListener('pagehide', cancelFallback);
+        window.addEventListener('blur', cancelFallback);
+
+        // Kick to the app
+        location.href = appUri;
+        // Fallback ONLY if we stayed visible (app failed to open)
+        fallbackTimer = setTimeout(()=>{ if (!document.hidden) location.assign(webUrl); }, 1200);
         return;
       }
       if (isAndroid){
@@ -92,7 +106,7 @@
       if (inNewTab) window.open(webUrl, '_blank', 'noopener'); else location.href = webUrl;
     }
 
-    function openApple(){
+    function openApple(){(){
       pausePreview();
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isIOS){ location.href = url; return; }
