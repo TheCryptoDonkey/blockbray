@@ -106,7 +106,7 @@
       if (inNewTab) window.open(webUrl, '_blank', 'noopener'); else location.href = webUrl;
     }
 
-    function openApple(){(){
+    function openApple(){{
       pausePreview();
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isIOS){ location.href = url; return; }
@@ -135,7 +135,7 @@
         const params = new URLSearchParams(location.search);
         const override = params.get('cover');
         if (override){ cover.src = decodeURIComponent(override); }
-        // If local cover.jpg 404s, try Spotify oEmbed thumbnail as graceful fallback
+        // If local EchoSevenLatitudeDaze.png 404s, try Spotify oEmbed thumbnail as graceful fallback
         cover.onerror = ()=>{ fetchSpotifyThumb(); };
       }
 
@@ -161,7 +161,7 @@
 </head>
 <body>
   <div class="card">
-    <img id="cover" class="cover" src="cover.jpg" alt="Album art for “Latitude Daze (Euro Disco Mix)” by Echo Seven" loading="eager" />
+    <img id="cover" class="cover" src="EchoSevenLatitudeDaze.png" alt="Album art for “Latitude Daze (Euro Disco Mix)” by Echo Seven" loading="eager" />
     <h1>Follow Echo Seven</h1>
     <p class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
 
