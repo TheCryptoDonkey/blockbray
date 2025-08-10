@@ -51,6 +51,12 @@
     .btn-mini:hover{ filter:brightness(1.08); }
     @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
 
+    /* In-app browser helper */
+    .iab{ display:none; width:100%; max-width:620px; background:#181818; border:1px solid var(--ring); color:#eaeaea; padding:10px 12px; border-radius:12px; font-size:13px; gap:8px; align-items:center; justify-content:space-between; }
+    .iab.show{ display:flex; }
+    .iab .left{ display:flex; gap:10px; align-items:center; text-align:left; }
+    .iab .pill{ padding:8px 10px; border-radius:999px; background:#262626; border:1px solid var(--ring); color:#fff; cursor:pointer; }
+
     /* Footer small links */
     .small{ font-size:12px; opacity:.72; margin-top:8px; }
 
@@ -87,6 +93,30 @@
     const isIOS = /iPad|iPhone|iPod/i.test(UA) || isIPadOSDesktop;
     const isAndroid = /Android/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
+    const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB|Line\/.+|TikTok|Twitter/i.test(UA);
+
+    // --- i18n (simple) ---
+    const i18n = {
+      en:{ title:"Follow Echo Seven", lead:"Listen to a quick preview, then follow on your favourite music service.", nudge:"Like it? Follow Echo Seven →", iab:"This in‑app browser may block music links. Open in your browser for the best experience." },
+      es:{ title:"Sigue a Echo Seven", lead:"Escucha un adelanto y síguenos en tu app favorita.", nudge:"¿Te gusta? Sigue a Echo Seven →", iab:"Este navegador integrado puede bloquear enlaces. Ábrelo en tu navegador para mejor experiencia." },
+      de:{ title:"Folge Echo Seven", lead:"Hör kurz rein und folge in deiner Lieblings‑App.", nudge:"Gefällt dir das? Folge Echo Seven →", iab:"Dieser In‑App‑Browser kann Links blockieren. Im Browser öffnen für die beste Erfahrung." },
+      fr:{ title:"Suivre Echo Seven", lead:"Écoutez un extrait puis suivez‑nous dans votre application préférée.", nudge:"Vous aimez ? Suivez Echo Seven →", iab:"Ce navigateur intégré peut bloquer des liens. Ouvrez dans votre navigateur pour une meilleure expérience." },
+      it:{ title:"Segui Echo Seven", lead:"Ascolta un'anteprima e segui nell'app preferita.", nudge:"Ti piace? Segui Echo Seven →", iab:"Questo browser in‑app può bloccare i link. Apri nel browser per un'esperienza migliore." },
+      nl:{ title:"Volg Echo Seven", lead:"Luister kort en volg in je favoriete app.", nudge:"Bevalt het? Volg Echo Seven →", iab:"Deze in‑app browser kan links blokkeren. Open in je browser voor de beste ervaring." },
+      pl:{ title:"Obserwuj Echo Seven", lead:"Posłuchaj fragmentu i obserwuj w ulubionej aplikacji.", nudge:"Podoba się? Obserwuj Echo Seven →", iab:"Ta przeglądarka w aplikacji może blokować linki. Otwórz w przeglądarce dla lepszego działania." },
+      tr:{ title:"Echo Seven'ı takip et", lead:"Kısa bir önizleme dinle, sonra favorit uygulamada takip et.", nudge:"Sevdin mi? Echo Seven'ı takip et →", iab:"Uygulama içi tarayıcı bağlantıları engelleyebilir. En iyi deneyim için tarayıcıda aç." },
+      sv:{ title:"Följ Echo Seven", lead:"Lyssna kort och följ i din favoritapp.", nudge:"Gillar du det? Följ Echo Seven →", iab:"Den här in‑app‑webbläsaren kan blockera länkar. Öppna i din webbläsare för bästa upplevelse." },
+      fi:{ title:"Seuraa Echo Seven", lead:"Kuuntele esikatselu ja seuraa lempisovelluksessa.", nudge:"Pidätkö? Seuraa Echo Seven →", iab:"Sovelluksen sisäinen selain voi estää linkkejä. Avaa selaimessa parhaan kokemuksen saamiseksi." },
+      no:{ title:"Følg Echo Seven", lead:"Hør et kort utdrag og følg i favorittappen din.", nudge:"Liker du det? Følg Echo Seven →", iab:"Denne innebygde nettleseren kan blokkere lenker. Åpne i nettleser for best opplevelse." },
+      pt:{ title:"Siga Echo Seven", lead:"Ouça uma prévia e siga no seu app favorito.", nudge:"Curtiu? Siga Echo Seven →", iab:"Este navegador do app pode bloquear links. Abra no navegador para a melhor experiência." }
+    };
+    function detectLang(){
+      const p = new URLSearchParams(location.search);
+      const override = (p.get('lang')||'').toLowerCase();
+      if (override && i18n[override]) return override;
+      const nav = (navigator.language||'en').slice(0,2).toLowerCase();
+      return i18n[nav] ? nav : 'en';
+    }
 
     // Build UTM string from query if present; else use default
     function utmFromQueryOrDefault(){
@@ -100,17 +130,23 @@
       const utm = utmFromQueryOrDefault();
       return utm ? `${url}${url.includes('?') ? '&' : '?'}${utm}` : url;
     }
+    function appendUtmSrcLang(url, source){
+      let out = appendUtm(url);
+      const lang = detectLang();
+      const extra = new URLSearchParams({ src: source||'cta', lang });
+      out += (out.includes('?')?'&':'?') + extra.toString();
+      return out;
+    }
 
     // --- Follow handlers — deep link on iOS (on click), with clean fallbacks ---
-    function pausePreview(){ /* kept if we reintroduce HTML5 audio later */ }
+    function pausePreview(){ /* reserved if we reintroduce HTML5 audio */ }
 
-    function openSpotify(inNewTab=false){
+    function openSpotify(inNewTab=false, source='cta'){
       pausePreview();
-      try{ fbq('trackCustom','FollowClick',{service:'spotify'}); }catch(_){ }
+      try{ fbq('trackCustom','FollowClick',{service:'spotify',source}); }catch(_){ }
       const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
-      const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
+      const webUrl = appendUtmSrcLang(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`, source);
       if (isIOS){
-        // iOS: try to open the app; ONLY fall back to web if the page never hid (app didn't open)
         let fallbackTimer;
         const cancelFallback = () => {
           if (fallbackTimer) clearTimeout(fallbackTimer);
@@ -133,10 +169,10 @@
       if (inNewTab) window.open(webUrl, '_blank', 'noopener'); else location.href = webUrl;
     }
 
-    function openApple(){
+    function openApple(source='cta'){
       pausePreview();
-      try{ fbq('trackCustom','FollowClick',{service:'apple'}); }catch(_){ }
-      const url = appendUtm(cfg.appleArtistFullUrl);
+      try{ fbq('trackCustom','FollowClick',{service:'apple',source}); }catch(_){ }
+      const url = appendUtmSrcLang(cfg.appleArtistFullUrl, source);
       if (isIOS){ location.href = url; return; }
       if (isAndroid){
         const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
@@ -147,9 +183,29 @@
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', ()=>{
+      // Localise simple strings
+      const lang = detectLang();
+      document.documentElement.lang = lang;
+      const t = i18n[lang] || i18n.en;
+      const h1 = document.getElementById('t_title'); if (h1) h1.textContent = t.title;
+      const lead = document.getElementById('t_lead'); if (lead) lead.textContent = t.lead;
+      const nudgeText = document.getElementById('t_nudge'); if (nudgeText) nudgeText.textContent = t.nudge;
+
+      // In‑app browser helper
+      const iab = document.getElementById('iab');
+      if (isInApp && iab){
+        iab.classList.add('show');
+        const iabText = document.getElementById('t_iab');
+        if (iabText) iabText.textContent = t.iab;
+        const copyBtn = document.getElementById('iabCopy');
+        if (copyBtn){ copyBtn.addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText(location.href); copyBtn.textContent='Link copied'; setTimeout(()=>copyBtn.textContent='Copy link', 1800); }catch(_){ /* ignore */ }
+        }); }
+      }
+
       // Buttons
-      document.getElementById('btnApple').addEventListener('click', openApple);
-      document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop));
+      document.getElementById('btnApple').addEventListener('click', ()=>openApple('cta'));
+      document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop, 'cta'));
 
       // Button hints
       const appleHint = document.getElementById('appleHint');
@@ -177,15 +233,20 @@
       // Nudge buttons (explicit source tagging)
       const nudgeApple = document.getElementById('nudgeApple');
       const nudgeSpotify = document.getElementById('nudgeSpotify');
-      if (nudgeApple) nudgeApple.addEventListener('click', (e)=>{ e.preventDefault(); try{ fbq('trackCustom','FollowClick',{service:'apple',source:'nudge'}); }catch(_){ } openApple(); });
-      if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); try{ fbq('trackCustom','FollowClick',{service:'spotify',source:'nudge'}); }catch(_){ } openSpotify(isDesktop); });
+      if (nudgeApple) nudgeApple.addEventListener('click', (e)=>{ e.preventDefault(); openApple('nudge'); });
+      if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); openSpotify(isDesktop, 'nudge'); });
     });
   </script>
 </head>
 <body>
   <div class="card">
-    <h1>Follow Echo Seven</h1>
-    <p class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
+    <div id="iab" class="iab" role="status">
+      <div class="left">⚠️ <span id="t_iab">This in‑app browser may block music links. Open in your browser for the best experience.</span></div>
+      <button id="iabCopy" class="pill" type="button">Copy link</button>
+    </div>
+
+    <h1 id="t_title">Follow Echo Seven</h1>
+    <p id="t_lead" class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
 
     <div class="btns">
       <button id="btnApple" class="btn btn-apple" aria-label="Follow on Apple Music">
@@ -204,7 +265,7 @@
     <div id="teaserMount" aria-live="polite"></div>
 
     <div id="nudge" class="nudge" aria-live="polite">
-      <span>Like it? Follow Echo Seven →</span>
+      <span id="t_nudge">Like it? Follow Echo Seven →</span>
       <button id="nudgeApple" class="btn-mini" type="button">Apple Music</button>
       <button id="nudgeSpotify" class="btn-mini" type="button">Spotify</button>
     </div>
