@@ -28,22 +28,31 @@
     const cfg = {
       utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_latitude_daze",
       spotifyTrackId: "1Non9dMlsEcC5Mavv684al",
+      // Prefer exact Apple URLs when available to avoid storefront mismatches in the Apple Music app
+      appleSongFullUrl: "https://music.apple.com/gb/song/latitude-daze-euro-disco-mix/1827825008",
+      appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
+      // Fallback path pieces (used only if full URLs above are omitted)
       appleSongPath: "song/latitude-daze-euro-disco-mix/1827825008",
-      spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       appleArtistPath: "artist/echo-seven/1827674820",
+      spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" },
       defaultStorefront: "gb"
     };
 
     // ===== Robust environment detection =====
     const UA = navigator.userAgent || navigator.vendor || window.opera || "";
-    const isIPadOSDesktop = /Macintosh/i.test(UA) && (('ontouchend' in document) || (navigator.maxTouchPoints>1));
+    const isIPadOSDesktop = /Macintosh/i.test(UA) && (("ontouchend" in document) || (navigator.maxTouchPoints>1));
     const isIOS = /iPad|iPhone|iPod/i.test(UA) || isIPadOSDesktop;
     const isAndroid = /Android/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
     const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB|Line\/|TikTok|Twitter/i.test(UA);
 
     // ===== Helpers =====
+    function appendUtm(url, utm){
+      if (!utm) return url;
+      return url.includes("?") ? `${url}&${utm}` : `${url}?${utm}`;
+    }
+
     function resolveStorefront(){
       const params = new URLSearchParams(location.search);
       const forced = (params.get('sf')||'').toLowerCase();
@@ -55,15 +64,19 @@
 
     function buildUrls(){
       const sf = resolveStorefront();
+      // Apple: prefer exact URLs if provided
+      const appleTrackBase = cfg.appleSongFullUrl || `https://music.apple.com/${sf}/${cfg.appleSongPath}`;
+      const appleArtistBase = cfg.appleArtistFullUrl || (cfg.appleArtistPath ? `https://music.apple.com/${sf}/${cfg.appleArtistPath}` : "");
+
       return {
         // Track
         spotifyTrackApp: `spotify://track/${cfg.spotifyTrackId}`,
-        spotifyTrackWeb: `https://open.spotify.com/track/${cfg.spotifyTrackId}?${cfg.utm}`,
-        appleTrack: `https://music.apple.com/${sf}/${cfg.appleSongPath}?${cfg.utm}`,
+        spotifyTrackWeb: appendUtm(`https://open.spotify.com/track/${cfg.spotifyTrackId}`, cfg.utm),
+        appleTrack: appendUtm(appleTrackBase, cfg.utm),
         // Artist (for follow)
         spotifyArtistApp: cfg.spotifyArtistId ? `spotify://artist/${cfg.spotifyArtistId}` : "",
-        spotifyArtistWeb: cfg.spotifyArtistId ? `https://open.spotify.com/artist/${cfg.spotifyArtistId}?${cfg.utm}` : "",
-        appleArtist: cfg.appleArtistPath ? `https://music.apple.com/${sf}/${cfg.appleArtistPath}?${cfg.utm}` : ""
+        spotifyArtistWeb: cfg.spotifyArtistId ? appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`, cfg.utm) : "",
+        appleArtist: appleArtistBase ? appendUtm(appleArtistBase, cfg.utm) : ""
       };
     }
 
