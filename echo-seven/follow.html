@@ -15,10 +15,12 @@
     h1 { font-size:28px; margin:0 0 10px; }
     p.lead { opacity:.9; margin:0 0 16px; }
     iframe { margin:20px 0; border-radius:12px; }
-    .btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .btns { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .btn-wrap { display:flex; flex-direction:column; align-items:center; }
     .btn { padding:14px 18px; border-radius:999px; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
     .btn-apple { background:#fff; color:#000; }
     .btn-spotify { background:#1DB954; color:#000; }
+    .hint { font-size:12px; opacity:.75; margin-top:6px; }
     .small { font-size:12px; opacity:.7; margin-top:12px; }
   </style>
   <script>
@@ -27,9 +29,7 @@
       utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_follow",
       spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
-      spotifyTrackId: "1Non9dMlsEcC5Mavv684al",
-      appleAlbumTrackEmbed: "https://embed.music.apple.com/gb/album/latitude-daze-euro-disco-mix/1827825001?i=1827825008",
-      preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" }
+      spotifyTrackId: "1Non9dMlsEcC5Mavv684al"
     };
 
     // --- Env detection ---
@@ -41,12 +41,11 @@
 
     function appendUtm(url){ return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url; }
 
-    // --- Follow handlers — deep link on iOS (on click) ---
+    // --- Follow handlers — deep link on iOS (on click), with clean fallbacks ---
     function openSpotify(inNewTab=false){
       const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
       if (isIOS){
-        // Try the Spotify app first; if it doesn't fire quickly, fall back to the web artist page
         const t = Date.now();
         try { location.href = appUri; } catch(e) {}
         setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
@@ -62,20 +61,10 @@
       else location.href = webUrl;
     }
 
-          if (isAndroid){
-        const intent = `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
-        location.href = intent;
-        return;
-      }
-      // Desktop: optionally new tab
-      if (inNewTab) window.open(webUrl, '_blank', 'noopener');
-      else location.href = webUrl;
-    }
-
     function openApple(){
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isIOS){
-        // Use the universal link so it opens the Apple Music app if installed; else stays on the web
+        // Universal link opens Apple Music app if installed; else web
         location.href = url;
         return;
       }
@@ -88,63 +77,68 @@
       location.href = url;
     }
 
-          const url = appendUtm(cfg.appleArtistFullUrl);
-      if (isAndroid){
-        const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
-        location.href = intent;
-        return;
-      }
-      // Desktop
-      location.href = url;
+    // --- Spotify preview using IFrame API; plays on first user gesture ---
+    function setupPreview(){
+      const mount = document.getElementById('teaserMount');
+      if (!mount) return;
+      const api = document.createElement('script');
+      api.src = 'https://open.spotify.com/embed/iframe-api/v1';
+      api.async = true;
+      document.head.appendChild(api);
+
+      window.onSpotifyIframeApiReady = (IFrameAPI) => {
+        const options = { uri: `spotify:track:${cfg.spotifyTrackId}` };
+        IFrameAPI.createController(mount, options, (EmbedController) => {
+          window._spotifyEmbedController = EmbedController;
+        });
+      };
+
+      const startPreview = (e) => {
+        const id = (e.target && e.target.id) || '';
+        if (id === 'btnApple' || id === 'btnSpotify') return cleanup();
+        if (window._spotifyEmbedController && window._spotifyEmbedController.play){
+          try { window._spotifyEmbedController.play(); } catch(_) {}
+        }
+        cleanup();
+      };
+      const cleanup = () => {
+        window.removeEventListener('pointerdown', startPreview, true);
+        window.removeEventListener('keydown', startPreview, true);
+        window.removeEventListener('touchstart', startPreview, true);
+      };
+      window.addEventListener('pointerdown', startPreview, true);
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'Enter') startPreview(e);
+      }, true);
+      window.addEventListener('touchstart', startPreview, true);
     }
 
     document.addEventListener('DOMContentLoaded', ()=>{
-      // Buttons
-      document.getElementById('btnApple').addEventListener('click', openApple);
-      document.getElementById('btnSpotify').addEventListener('click', ()=>{
-        // On desktop, open Spotify in a new tab so this page stays available
-        openSpotify(isDesktop);
-      });
-
-      // Auto-render teaser player with Spotify embed via IFrame API (so we can play after a user gesture)
+      // Render Spotify embed shell so there’s always a visible player
       const mount = document.getElementById('teaserMount');
       if (mount){
-        // Load Spotify IFrame API
-        const api = document.createElement('script');
-        api.src = 'https://open.spotify.com/embed/iframe-api/v1';
-        api.async = true;
-        document.head.appendChild(api);
-
-        window.onSpotifyIframeApiReady = (IFrameAPI) => {
-          const options = { uri: `spotify:track:${cfg.spotifyTrackId}` };
-          IFrameAPI.createController(mount, options, (EmbedController) => {
-            window._spotifyEmbedController = EmbedController;
-            // Optional: no need to show controls overlay; the embed renders its own UI
-          });
-        };
-
-        // "Soft autoplay": start preview on the FIRST user gesture (tap/click/keydown) that's not on a follow button
-        const startPreview = (e) => {
-          // Ignore clicks on follow buttons to avoid delaying navigation
-          const id = (e.target && e.target.id) || '';
-          if (id === 'btnApple' || id === 'btnSpotify') return cleanup();
-          if (window._spotifyEmbedController && window._spotifyEmbedController.play){
-            try { window._spotifyEmbedController.play(); } catch(_) {}
-          }
-          cleanup();
-        };
-        const cleanup = () => {
-          window.removeEventListener('pointerdown', startPreview, true);
-          window.removeEventListener('keydown', startPreview, true);
-          window.removeEventListener('touchstart', startPreview, true);
-        };
-        window.addEventListener('pointerdown', startPreview, true);
-        window.addEventListener('keydown', (e) => {
-          if (e.code === 'Space' || e.code === 'Enter') startPreview(e);
-        }, true);
-        window.addEventListener('touchstart', startPreview, true);
+        mount.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" width="100%" height="152" frameborder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="max-width:660px;border-radius:12px;"></iframe>`;
       }
-      // No auto-redirects
+      setupPreview();
+
+      // Button actions
+      document.getElementById('btnApple').addEventListener('click', openApple);
+      document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop));
+
+      // Button hints
+      const appleHint = document.getElementById('appleHint');
+      const spotifyHint = document.getElementById('spotifyHint');
+      if (isIOS){
+        appleHint.textContent = 'Opens Apple Music app';
+        spotifyHint.textContent = 'Opens Spotify app';
+      } else if (isAndroid){
+        appleHint.textContent = 'Opens Apple Music app';
+        spotifyHint.textContent = 'Opens Spotify app';
+      } else {
+        appleHint.textContent = 'Opens Apple Music website';
+        spotifyHint.textContent = 'Opens Spotify in new tab';
+      }
     });
   </script>
 </head>
@@ -152,11 +146,20 @@
   <div class="card">
     <h1>Follow Echo Seven</h1>
     <p class="lead">Listen now and follow Echo Seven on your favourite music service.</p>
+
     <div id="teaserMount" aria-live="polite"></div>
+
     <div class="btns">
-      <button id="btnApple" class="btn btn-apple">Follow on Apple Music</button>
-      <button id="btnSpotify" class="btn btn-spotify">Follow on Spotify</button>
+      <div class="btn-wrap">
+        <button id="btnApple" class="btn btn-apple">Follow on Apple Music</button>
+        <div id="appleHint" class="hint" aria-live="polite"></div>
+      </div>
+      <div class="btn-wrap">
+        <button id="btnSpotify" class="btn btn-spotify">Follow on Spotify</button>
+        <div id="spotifyHint" class="hint" aria-live="polite"></div>
+      </div>
     </div>
+
     <p class="small">Direct links: <a href="https://music.apple.com/gb/artist/echo-seven/1827674820">Apple Music</a> · <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u">Spotify</a></p>
   </div>
 </body>
