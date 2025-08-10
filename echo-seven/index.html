@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Echo Seven – Listen on Apple Music or Spotify</title>
   <meta property="og:title" content="Echo Seven – Latitude Daze (Euro Disco Mix)" />
-  <meta property="og:description" content="We’ll open the best music app for your device and country." />
+  <meta property="og:description" content="We’ll open the best music app for your device." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <style>
@@ -14,118 +14,67 @@
     .card { background:#121212; padding:28px; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); max-width:760px; text-align:center; }
     h1 { font-size:28px; margin:0 0 10px; }
     p.lead { opacity:.9; margin:0 0 16px; }
-    .status { font-size:14px; opacity:.9; margin:6px 0 14px; min-height:1.2em; }
     .btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
     .btn { padding:14px 18px; border-radius:999px; font-weight:700; text-decoration:none; border:0; cursor:pointer; }
     .btn-apple { background:#fff; color:#000; }
     .btn-spotify { background:#1DB954; color:#000; }
     .small { font-size:12px; opacity:.7; margin-top:12px; }
-    .tip { background:#1a1a1a; border:1px solid #2a2a2a; padding:10px; border-radius:10px; font-size:13px; margin:10px auto; max-width:620px; text-align:left; }
-    .hide { display:none !important; }
   </style>
   <script>
-    // ===== Config (can also be provided via config.json if you prefer) =====
     const cfg = {
       utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_latitude_daze",
       spotifyTrackId: "1Non9dMlsEcC5Mavv684al",
-      // Prefer exact Apple URLs when available to avoid storefront mismatches in the Apple Music app
-      appleSongFullUrl: "https://music.apple.com/gb/song/latitude-daze-euro-disco-mix/1827825008",
-      appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
-      // Fallback path pieces (used only if full URLs above are omitted)
-      appleSongPath: "song/latitude-daze-euro-disco-mix/1827825008",
-      appleArtistPath: "artist/echo-seven/1827674820",
+      appleSongFullUrl: "https://music.apple.com/gb/album/latitude-daze-euro-disco-mix/1827825001?i=1827825008",
       spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
-      preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" },
-      defaultStorefront: "gb"
+      appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
+      preferServiceByPlatform: { iOS: "apple", Android: "spotify", Desktop: "spotify" }
     };
 
-    // ===== Robust environment detection =====
     const UA = navigator.userAgent || navigator.vendor || window.opera || "";
     const isIPadOSDesktop = /Macintosh/i.test(UA) && (("ontouchend" in document) || (navigator.maxTouchPoints>1));
     const isIOS = /iPad|iPhone|iPod/i.test(UA) || isIPadOSDesktop;
     const isAndroid = /Android/i.test(UA);
-    const isDesktop = !isIOS && !isAndroid;
     const isInApp = /Instagram|FBAN|FBAV|FBIOS|FB_IAB|Line\/|TikTok|Twitter/i.test(UA);
 
-    // ===== Helpers =====
-    function appendUtm(url, utm){
-      if (!utm) return url;
-      return url.includes("?") ? `${url}&${utm}` : `${url}?${utm}`;
-    }
-
-    function resolveStorefront(){
-      const params = new URLSearchParams(location.search);
-      const forced = (params.get('sf')||'').toLowerCase();
-      if (forced) return forced.slice(0,2);
-      const lang = (navigator.language||'').toLowerCase();
-      const m = /[-_]([a-z]{2,3})$/.exec(lang);
-      return (m?m[1]:(cfg.defaultStorefront||'us')).toLowerCase();
-    }
-
-    function buildUrls(){
-      const sf = resolveStorefront();
-      // Apple: prefer exact URLs if provided
-      const appleTrackBase = cfg.appleSongFullUrl || `https://music.apple.com/${sf}/${cfg.appleSongPath}`;
-      const appleArtistBase = cfg.appleArtistFullUrl || (cfg.appleArtistPath ? `https://music.apple.com/${sf}/${cfg.appleArtistPath}` : "");
-
-      return {
-        // Track
-        spotifyTrackApp: `spotify://track/${cfg.spotifyTrackId}`,
-        spotifyTrackWeb: appendUtm(`https://open.spotify.com/track/${cfg.spotifyTrackId}`, cfg.utm),
-        appleTrack: appendUtm(appleTrackBase, cfg.utm),
-        // Artist (for follow)
-        spotifyArtistApp: cfg.spotifyArtistId ? `spotify://artist/${cfg.spotifyArtistId}` : "",
-        spotifyArtistWeb: cfg.spotifyArtistId ? appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`, cfg.utm) : "",
-        appleArtist: appleArtistBase ? appendUtm(appleArtistBase, cfg.utm) : ""
-      };
+    function appendUtm(url){
+      return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url;
     }
 
     function openSpotify(target){
-      const u = buildUrls();
-      const appUri = target==='artist' && u.spotifyArtistApp ? u.spotifyArtistApp : u.spotifyTrackApp;
-      const webUrl = target==='artist' && u.spotifyArtistWeb ? u.spotifyArtistWeb : u.spotifyTrackWeb;
+      const appUri = target==='artist' ? `spotify://artist/${cfg.spotifyArtistId}` : `spotify://track/${cfg.spotifyTrackId}`;
+      const webUrl = target==='artist' ? appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`) : appendUtm(`https://open.spotify.com/track/${cfg.spotifyTrackId}`);
       if (isIOS){
         const t = Date.now();
         try{ location.href = appUri; }catch(e){}
         setTimeout(()=>{ if (Date.now()-t < 1500) location.replace(webUrl); }, 800);
-        return;
+      } else if (isAndroid){
+        const intent = target==='artist'
+          ? `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`
+          : `intent://track/${cfg.spotifyTrackId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+        location.href = intent;
+      } else {
+        location.href = webUrl;
       }
-      if (isAndroid){
-        const intent = target==='artist' && u.spotifyArtistWeb
-          ? `intent://artist/${cfg.spotifyArtistId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(u.spotifyArtistWeb)};end`
-          : `intent://track/${cfg.spotifyTrackId}#Intent;scheme=spotify;package=com.spotify.music;S.browser_fallback_url=${encodeURIComponent(u.spotifyTrackWeb)};end`;
-        location.href = intent; return;
-      }
-      location.href = webUrl; // desktop
     }
 
     function openApple(target){
-      const u = buildUrls();
-      // Universal links on iOS open the app if installed; else web.
-      // Same URL is fine for desktop too.
-      const url = target==='artist' && u.appleArtist ? u.appleArtist : u.appleTrack;
+      const url = target==='artist' ? appendUtm(cfg.appleArtistFullUrl) : appendUtm(cfg.appleSongFullUrl);
       if (isAndroid){
-        const intent = `intent://${url.replace(/^https:\/\//,'')}` +
-          `#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
-        location.href = intent; return;
+        const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+        location.href = intent;
+      } else {
+        location.href = url;
       }
-      location.href = url;
     }
 
     function smartOpen(){
-      if (isInApp) return; // IG/FB in-app often block deep links; let user tap
-      const params = new URLSearchParams(location.search);
-      const overridePref = params.get('pref'); // 'apple' | 'spotify'
+      if (isInApp) return;
       const storedPref = localStorage.getItem('preferredService');
-      const platformDefault = isIOS ? cfg.preferServiceByPlatform.iOS : isAndroid ? cfg.preferServiceByPlatform.Android : cfg.preferServiceByPlatform.Desktop;
-      const initialPref = (overridePref==='apple'||overridePref==='spotify') ? overridePref : (storedPref || platformDefault);
-
+      const pref = storedPref || cfg.preferServiceByPlatform[isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'];
       const returning = !!localStorage.getItem('hasOpenedOnce');
       const target = returning ? 'artist' : 'track';
       localStorage.setItem('hasOpenedOnce', '1');
-
-      if (initialPref === 'apple') openApple(target);
-      else openSpotify(target);
+      if (pref === 'apple') openApple(target); else openSpotify(target);
     }
 
     document.addEventListener('DOMContentLoaded', ()=>{
@@ -138,9 +87,7 @@
 <body>
   <div class="card">
     <h1>Opening “Latitude Daze (Euro Disco Mix)”</h1>
-    <p class="lead">We’ll use the music app that works best on your device and country.</p>
-    <div id="status" class="status"></div>
-    <div id="inAppTip" class="tip hide">Using an in-app browser? Open in your default browser for best results.</div>
+    <p class="lead">We’ll use the music app that works best on your device.</p>
     <div class="btns">
       <button id="btnApple" class="btn btn-apple">Open in Apple Music</button>
       <button id="btnSpotify" class="btn btn-spotify">Open in Spotify</button>
