@@ -41,11 +41,11 @@
 
     function appendUtm(url){ return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url; }
 
-    // --- Follow handlers ---
+    // --- Follow handlers (no auto-open on iOS) ---
     function openSpotify(inNewTab=false){
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
-      // iOS: do NOT deep-link; stay on web to avoid auto-opening the app
       if (isIOS){
+        // Stay on web on iOS to avoid deep-link auto-open
         location.href = webUrl;
         return;
       }
@@ -54,34 +54,27 @@
         location.href = intent;
         return;
       }
-      // Desktop behaviour unchanged; optional new tab
+      // Desktop: optionally new tab
       if (inNewTab) window.open(webUrl, '_blank', 'noopener');
       else location.href = webUrl;
     }
 
-          }
-    }
-
     function openApple(){
-      // iOS: use the EMBED domain to avoid Universal Links auto-opening the Music app
-      // This keeps users on the web unless they choose "Open in Music" inside the embed.
       if (isIOS){
+        // Use embed domain to keep users in-browser; they can choose "Open in Music" from the embed
         const embedUrl = appendUtm(cfg.appleArtistFullUrl.replace('https://music.apple.com','https://embed.music.apple.com'));
         location.href = embedUrl;
         return;
       }
-      // Android: use intent with fallback to full web artist page
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isAndroid){
         const intent = `intent://${url.replace(/^https:\/\//,'')}#Intent;scheme=https;package=com.apple.android.music;S.browser_fallback_url=${encodeURIComponent(url)};end`;
         location.href = intent;
         return;
       }
-      // Desktop: go to full web artist page
+      // Desktop
       location.href = url;
     }
-
-        }
 
     document.addEventListener('DOMContentLoaded', ()=>{
       // Buttons
