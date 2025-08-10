@@ -25,7 +25,8 @@
       box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.02);
       padding:clamp(18px, 2.4vw, 32px); text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px;
       border:1px solid var(--ring);
-    }    h1{ margin:0; font-weight:800; letter-spacing:.2px; font-size:clamp(22px, 3.4vw, 36px); }
+    }
+    h1{ margin:0; font-weight:800; letter-spacing:.2px; font-size:clamp(22px, 3.4vw, 36px); }
     .lead{ margin:4px 0 4px; opacity:.88; font-size:clamp(14px, 1.5vw, 16px); }
 
     /* Buttons */
@@ -43,19 +44,38 @@
     iframe{ display:block; width:100%; height:72px; }
     @media (min-width: 680px){ iframe{ height:80px; } }
 
+    /* Nudge */
+    .nudge{ display:none; align-items:center; gap:10px; margin-top:8px; font-size:13px; color:#e6e6e6; }
+    .nudge.show{ display:flex; animation:fadeIn .3s ease forwards; }
+    .btn-mini{ padding:8px 12px; border-radius:999px; border:1px solid var(--ring); background:#1a1a1a; color:#fff; cursor:pointer; }
+    .btn-mini:hover{ filter:brightness(1.08); }
+    @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
+
     /* Footer small links */
     .small{ font-size:12px; opacity:.72; margin-top:8px; }
 
     /* Focus states for accessibility */
-    .btn:focus-visible{ outline:2px solid #fff; outline-offset:2px; box-shadow:0 0 0 4px rgba(255,255,255,.2); }
+    .btn:focus-visible,.btn-mini:focus-visible{ outline:2px solid #fff; outline-offset:2px; box-shadow:0 0 0 4px rgba(255,255,255,.2); }
 
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce){ .btn{ transition:none } }
   </style>
+
+  <!-- Meta Pixel -->
+  <script>
+    !(function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)})(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '3718618815109659');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=3718618815109659&ev=PageView&noscript=1" /></noscript>
+
   <script>
     // --- Config ---
     const cfg = {
-      utm: "utm_source=ad&utm_medium=landing&utm_campaign=echo_seven_follow",
+      utm: "utm_source=meta&utm_medium=paid&utm_campaign=echo_seven_follow",
       spotifyArtistId: "1xdDfEI9pjuEXglEaK8k4u",
       appleArtistFullUrl: "https://music.apple.com/gb/artist/echo-seven/1827674820",
       spotifyTrackId: "1Non9dMlsEcC5Mavv684al"
@@ -68,13 +88,25 @@
     const isAndroid = /Android/i.test(UA);
     const isDesktop = !isIOS && !isAndroid;
 
-    function appendUtm(url){ return cfg.utm ? `${url}${url.includes('?') ? '&' : '?'}${cfg.utm}` : url; }
+    // Build UTM string from query if present; else use default
+    function utmFromQueryOrDefault(){
+      const p = new URLSearchParams(location.search);
+      const q = new URLSearchParams();
+      for (const [k,v] of p.entries()) if (/^utm_/i.test(k)) q.set(k,v);
+      const str = q.toString();
+      return str || cfg.utm;
+    }
+    function appendUtm(url){
+      const utm = utmFromQueryOrDefault();
+      return utm ? `${url}${url.includes('?') ? '&' : '?'}${utm}` : url;
+    }
 
     // --- Follow handlers — deep link on iOS (on click), with clean fallbacks ---
     function pausePreview(){ /* kept if we reintroduce HTML5 audio later */ }
 
     function openSpotify(inNewTab=false){
       pausePreview();
+      try{ fbq('trackCustom','FollowClick',{service:'spotify'}); }catch(_){ }
       const appUri = `spotify://artist/${cfg.spotifyArtistId}`;
       const webUrl = appendUtm(`https://open.spotify.com/artist/${cfg.spotifyArtistId}`);
       if (isIOS){
@@ -90,10 +122,7 @@
         document.addEventListener('visibilitychange', onVisibility);
         window.addEventListener('pagehide', cancelFallback);
         window.addEventListener('blur', cancelFallback);
-
-        // Kick to the app
         location.href = appUri;
-        // Fallback ONLY if we stayed visible (app failed to open)
         fallbackTimer = setTimeout(()=>{ if (!document.hidden) location.assign(webUrl); }, 1200);
         return;
       }
@@ -106,6 +135,7 @@
 
     function openApple(){
       pausePreview();
+      try{ fbq('trackCustom','FollowClick',{service:'apple'}); }catch(_){ }
       const url = appendUtm(cfg.appleArtistFullUrl);
       if (isIOS){ location.href = url; return; }
       if (isAndroid){
@@ -131,20 +161,35 @@
       // Compact Spotify preview (familiar look)
       const mount = document.getElementById('teaserMount');
       if (mount){
-        mount.innerHTML = `<div class="player-wrap"><iframe src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" frameborder="0"
+        mount.innerHTML = `<div class="player-wrap"><iframe title="Spotify track preview" src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" frameborder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
+        try{ fbq('trackCustom','PreviewShown',{track:'Latitude Daze'}); }catch(_){ }
       }
+
+      // Gentle follow nudge after 6s
+      const nudge = document.getElementById('nudge');
+      setTimeout(()=>{
+        if (!nudge) return;
+        nudge.classList.add('show');
+        try{ fbq('trackCustom','NudgeShown',{}); }catch(_){ }
+      }, 6000);
+
+      // Nudge buttons (explicit source tagging)
+      const nudgeApple = document.getElementById('nudgeApple');
+      const nudgeSpotify = document.getElementById('nudgeSpotify');
+      if (nudgeApple) nudgeApple.addEventListener('click', (e)=>{ e.preventDefault(); try{ fbq('trackCustom','FollowClick',{service:'apple',source:'nudge'}); }catch(_){ } openApple(); });
+      if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); try{ fbq('trackCustom','FollowClick',{service:'spotify',source:'nudge'}); }catch(_){ } openSpotify(isDesktop); });
     });
   </script>
 </head>
 <body>
   <div class="card">
-        <h1>Follow Echo Seven</h1>
+    <h1>Follow Echo Seven</h1>
     <p class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
 
     <div class="btns">
       <button id="btnApple" class="btn btn-apple" aria-label="Follow on Apple Music">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 1.64a4.3 4.3 0 0 1-1.06 3.3 3.69 3.69 0 0 1-2.82 1.35 4.05 4.05 0 0 1 1.12-3.2A4.37 4.37 0 0 1 16.36 1.64ZM20.4 17.62c-.36.82-.79 1.58-1.3 2.29-.69.97-1.25 1.64-1.69 2a3.9 3.9 0 0 1-2.5.95c-.63 0-1.39-.18-2.28-.54-.9-.36-1.73-.54-2.5-.54-.82 0-1.69.18-2.6.54-.9.36-1.63.55-2.18.58-.95.04-1.87-.3-2.76-1.01-.56-.46-1.16-1.16-1.8-2.1C.28 18.76-.1 17.6 0 16.5c.07-1.1.44-2.13 1.12-3.08.74-1.07 1.72-1.86 2.95-2.38.77-.32 1.6-.49 2.47-.5.49 0 1.13.15 1.93.45.79.3 1.3.45 1.54.45.17 0 .69-.18 1.57-.54.85-.33 1.56-.47 2.12-.42 1.56.13 2.73.73 3.53 1.8-1.4.84-2.1 2.03-2.09 3.57.01 1.19.45 2.18 1.33 2.97.4.38.85.67 1.35.87.11.04.2.06.26.06.05 0 .12-.01.2-.05.05-.02.1-.05.14-.08.06-.04.12-.1.18-.17.08-.09.16-.21.25-.35Zm-5.61-13.4c.44-.53.77-1.13 1-1.8l.1-.28.27-.05c.25-.05.6-.09 1.02-.09 1.08 0 2 .27 2.76.82a3.6 3.6 0 0 1 1.33 1.87c-.13.05-.31.11-.55.18-.26.08-.48.14-.67.2a4 4 0 0 1-1.05.14 4.9 4.9 0 0 1-1.23-.16 8.05 8.05 0 0 1-1.35-.53c-.42-.2-.81-.45-1.16-.74Z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.36 1.64a4.3 4.3 0 0 1-1.06 3.3 3.69 3.69 0 0 1-2.82 1.35 4.05 4.05 0 0 1 1.12-3.2A4.37 4.37 0 0 1 16.36 1.64ZM20.4 17.62c-.36.82-.79 1.58-1.3 2.29-.69.97-1.25 1.64-1.69 2a3.9 3.9 0 0 1-2.5.95c-.63 0-1.39-.18-2.28-.54-.9-.36-1.73-.54-2.5-.54-.82 0-1.69.18-2.6.54-.9.36-1.63.55-2.18.58-.95.04-1.87-.3-2.76-1.01-.56-.46-1.16-1.16-1.8-2.1C.28 18.76-.1 17.6 0 16.5c.07-1.1.44-2.13 1.12-3.08.74-1.07 1.72-1.86 2.95-2.38.77-.32 1.6-.49 2.47-.5.49 0 1.13.15 1.93.45.79.3 1.3.45 1.54.45.17 0 .69-.18 1.57-.54.85-.33 1.56-.47 2.12-.42 1.56.13 2.73.73 3.53 1.8-1.4.84-2.1 2.03-2.09 3.57.01 1.19.45 2.18 1.33 2.97.4.38.85.67 1.35.87.11.04.2.06.26.06.05 0 .12-.01.2-.05.05-.02.1-.05.14-.08.06-.04.12-.1.18-.17.08-.09.16-.21.25-.35Zm-5.61-13.4c.44-.53.77-1.13 1-1.8l.1-.28.27-.05c.25-.05.6-.09 1.02-.09 1.08 0 2 .27 2.76.82a3.6 3.6 0 0 1 1.33 1.87c-.13 .05-.31 .11-.55 .18-.26 .08-.48 .14-.67 .2a4 4 0 0 1-1.05 .14 4.9 4.9 0 0 1-1.23 -.16 8.05 8.05 0 0 1-1.35 -.53c-.42 -.2-.81 -.45-1.16 -.74Z"/></svg>
         Apple Music
       </button>
       <div id="appleHint" class="hint" aria-live="polite"></div>
@@ -157,6 +202,12 @@
     </div>
 
     <div id="teaserMount" aria-live="polite"></div>
+
+    <div id="nudge" class="nudge" aria-live="polite">
+      <span>Like it? Follow Echo Seven →</span>
+      <button id="nudgeApple" class="btn-mini" type="button">Apple Music</button>
+      <button id="nudgeSpotify" class="btn-mini" type="button">Spotify</button>
+    </div>
 
     <p class="small">Direct links: <a href="https://music.apple.com/gb/artist/echo-seven/1827674820">Apple Music</a> · <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u">Spotify</a></p>
   </div>
