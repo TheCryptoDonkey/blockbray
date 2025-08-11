@@ -76,6 +76,9 @@
 
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce){ .btn{ transition:none } }
+    /* Playlist badge */
+    .badge{ display:none; margin-top:2px; font-size:12px; color:#eaeaea; background:#1a1a1a; border:1px solid var(--ring); padding:6px 10px; border-radius:999px; }
+    .badge a{ color:#8ab4ff; text-decoration:none; }
   </style>
 
   <!-- Meta Pixel -->
@@ -144,7 +147,10 @@
     function appendUtmSrcLang(url, source){
       let out = appendUtm(url);
       const lang = detectLang();
+      const p = new URLSearchParams(location.search);
+      const mode = (p.get('mode')||'').toLowerCase(); // 'spotify' | 'apple'
       const extra = new URLSearchParams({ src: source||'cta', lang });
+      if (mode) extra.set('mode', mode);
       out += (out.includes('?')?'&':'?') + extra.toString();
       return out;
     }
@@ -202,6 +208,17 @@
       const lead = document.getElementById('t_lead'); if (lead) lead.textContent = t.lead;
       const nudgeText = document.getElementById('t_nudge'); if (nudgeText) nudgeText.textContent = t.nudge;
 
+      // Playlist badge via query
+      (function badge(){
+        const badgeEl = document.getElementById('playlistBadge'); if (!badgeEl) return;
+        const p = new URLSearchParams(location.search);
+        const label = p.get('badge') || '';
+        const plUrl = p.get('badge_url') || '';
+        if (!label) return;
+        badgeEl.style.display = 'inline-block';
+        badgeEl.innerHTML = plUrl ? `As heard on <a href="${plUrl}" target="_blank" rel="noopener noreferrer">${label}</a>` : `As heard on ${label}`;
+      })();
+
       // In‑app browser helper
       const iab = document.getElementById('iab');
       if (isInApp && iab){
@@ -226,8 +243,12 @@
         const spotifyBtn = document.getElementById('btnSpotify');
         const spotifyHint = document.getElementById('spotifyHint');
         if (!parent || !appleBtn || !spotifyBtn || !appleHint || !spotifyHint) return;
+        // remove current order
         [appleBtn, appleHint, spotifyBtn, spotifyHint].forEach(n=>{ if(n && n.parentNode===parent) parent.removeChild(n); });
-        if (isIOS){ parent.append(appleBtn, appleHint, spotifyBtn, spotifyHint); }
+        const p = new URLSearchParams(location.search);
+        const mode = (p.get('mode')||'').toLowerCase(); // 'spotify' | 'apple'
+        const preferApple = mode==='apple' || (!mode && isIOS);
+        if (preferApple){ parent.append(appleBtn, appleHint, spotifyBtn, spotifyHint); }
         else { parent.append(spotifyBtn, spotifyHint, appleBtn, appleHint); }
       })();
 
@@ -281,7 +302,8 @@
         const primaryBtn = document.getElementById('stickyPrimary');
         const secondaryBtn = document.getElementById('stickySecondary');
         if (!sticky || !primaryBtn || !secondaryBtn) return;
-        const primary = isIOS ? 'apple' : (isAndroid ? 'spotify' : 'spotify');
+        const p = new URLSearchParams(location.search); const mode = (p.get('mode')||'').toLowerCase();
+        const primary = mode==='apple' ? 'apple' : (mode==='spotify' ? 'spotify' : (isIOS ? 'apple' : 'spotify'));
         const setApplePrimary = () => {
           primaryBtn.className = 'btn btn-apple';
           primaryBtn.textContent = 'Follow on Apple Music';
@@ -302,7 +324,6 @@
         const delay = isInApp ? 2000 : 4000;
         setTimeout(()=>{ sticky.classList.add('show'); try{ fbq('trackCustom','StickyShown',{primary}); }catch(_){ } }, delay);
       })();
-      if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); openSpotify(isDesktop, 'nudge'); });
     });
   </script>
 </head>
@@ -314,6 +335,7 @@
     </div>
 
     <h1 id="t_title">Follow Echo Seven</h1>
+    <div id="playlistBadge" class="badge" aria-live="polite"></div>
     <p id="t_lead" class="lead">Listen to a quick preview, then follow on your favourite music service.</p>
 
     <div class="btns">
