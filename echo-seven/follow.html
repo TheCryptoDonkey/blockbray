@@ -8,6 +8,8 @@
   <meta property="og:description" content="Follow Echo Seven on your favourite music service." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content="EchoSevenLatitudeDaze.png" />
+  <meta name="twitter:image" content="EchoSevenLatitudeDaze.png" />
   <style>
     :root {
       color-scheme: dark;
@@ -44,12 +46,21 @@
     iframe{ display:block; width:100%; height:72px; }
     @media (min-width: 680px){ iframe{ height:80px; } }
 
-    /* Nudge */
-    .nudge{ display:none; align-items:center; gap:10px; margin-top:8px; font-size:13px; color:#e6e6e6; }
-    .nudge.show{ display:flex; animation:fadeIn .3s ease forwards; }
-    .btn-mini{ padding:8px 12px; border-radius:999px; border:1px solid var(--ring); background:#1a1a1a; color:#fff; cursor:pointer; }
-    .btn-mini:hover{ filter:brightness(1.08); }
-    @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
+    /* Preview Fallback (for in‑app browsers that block embeds) */
+    .preview-fallback .pf-inner{ display:flex; align-items:center; gap:12px; padding:10px; }
+    .preview-fallback .pf-art{ width:56px; height:56px; border-radius:10px; background:#222 center/cover no-repeat; flex:0 0 56px; }
+    @media (min-width: 680px){ .preview-fallback .pf-art{ width:60px; height:60px; } }
+    .preview-fallback .pf-title{ font-weight:700; font-size:15px; line-height:1.2; }
+    .preview-fallback .pf-sub{ font-size:12px; opacity:.75; margin-top:2px; }
+
+    /* Sticky bottom CTA */
+    .sticky-cta{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:50;
+      width:calc(100% - 48px); max-width:560px; display:none; align-items:center; justify-content:center; gap:8px;
+      background:rgba(20,20,20,.92); backdrop-filter:blur(8px); border:1px solid var(--ring); border-radius:999px;
+      padding:8px 10px; box-shadow:0 12px 36px rgba(0,0,0,.5); }
+    .sticky-cta.show{ display:flex; }
+    .sticky-cta .btn{ padding:10px 14px; font-size:15px; box-shadow:none; }
+    .sticky-cta .btn-mini{ background:#222; } 
 
     /* In-app browser helper */
     .iab{ display:none; width:100%; max-width:620px; background:#181818; border:1px solid var(--ring); color:#eaeaea; padding:10px 12px; border-radius:12px; font-size:13px; gap:8px; align-items:center; justify-content:space-between; }
@@ -207,6 +218,19 @@
       document.getElementById('btnApple').addEventListener('click', ()=>openApple('cta'));
       document.getElementById('btnSpotify').addEventListener('click', ()=>openSpotify(isDesktop, 'cta'));
 
+      // Reorder buttons by platform (Apple first on iOS; Spotify first elsewhere)
+      (function reorderButtons(){
+        const parent = document.querySelector('.btns');
+        const appleBtn = document.getElementById('btnApple');
+        const appleHint = document.getElementById('appleHint');
+        const spotifyBtn = document.getElementById('btnSpotify');
+        const spotifyHint = document.getElementById('spotifyHint');
+        if (!parent || !appleBtn || !spotifyBtn || !appleHint || !spotifyHint) return;
+        [appleBtn, appleHint, spotifyBtn, spotifyHint].forEach(n=>{ if(n && n.parentNode===parent) parent.removeChild(n); });
+        if (isIOS){ parent.append(appleBtn, appleHint, spotifyBtn, spotifyHint); }
+        else { parent.append(spotifyBtn, spotifyHint, appleBtn, appleHint); }
+      })();
+
       // Button hints
       const appleHint = document.getElementById('appleHint');
       const spotifyHint = document.getElementById('spotifyHint');
@@ -214,26 +238,70 @@
       else if (isAndroid){ appleHint.textContent = 'Opens Apple Music app'; spotifyHint.textContent = 'Opens Spotify app'; }
       else { appleHint.textContent = 'Opens Apple Music website'; spotifyHint.textContent = 'Opens Spotify in new tab'; }
 
-      // Compact Spotify preview (familiar look)
+      // Compact Spotify preview (with in‑app fallback)
       const mount = document.getElementById('teaserMount');
-      if (mount){
-        mount.innerHTML = `<div class="player-wrap"><iframe title="Spotify track preview" src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" frameborder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
+      async function renderPreviewFallback(){
+        if (!mount) return;
+        mount.innerHTML = `<div class="player-wrap preview-fallback"><div class="pf-inner">
+            <div class="pf-art" id="pfArt"></div>
+            <div class="pf-copy"><div class="pf-title">Latitude Daze (Euro Disco Mix)</div>
+              <div class="pf-sub">Preview blocked here. Follow on your app →</div></div>
+          </div></div>`;
+        try{
+          const url = `https://open.spotify.com/oembed?url=${encodeURIComponent('https://open.spotify.com/track/'+cfg.spotifyTrackId)}`;
+          const res = await fetch(url, { mode:'cors' });
+          if (res.ok){ const data = await res.json(); if (data && data.thumbnail_url){ const art = document.getElementById('pfArt'); if (art) art.style.backgroundImage = `url('${data.thumbnail_url}')`; } }
+        }catch(e){ /* ignore */ }
+        try{ fbq('trackCustom','PreviewFallbackShown',{track:'Latitude Daze'}); }catch(_){ }
+      }
+      function renderPreviewIframe(){
+        if (!mount) return;
+        mount.innerHTML = `<div class="player-wrap"><iframe title="Spotify track preview" src="https://open.spotify.com/embed/track/${cfg.spotifyTrackId}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
         try{ fbq('trackCustom','PreviewShown',{track:'Latitude Daze'}); }catch(_){ }
       }
+      if (mount){ if (isInApp) { renderPreviewFallback(); } else { renderPreviewIframe(); } }
 
-      // Gentle follow nudge after 6s
-      const nudge = document.getElementById('nudge');
+      // Gentle follow nudge (earlier in in-app browsers)
+      const nudgeDelay = isInApp ? 3000 : 6000;
       setTimeout(()=>{
         if (!nudge) return;
         nudge.classList.add('show');
         try{ fbq('trackCustom','NudgeShown',{}); }catch(_){ }
-      }, 6000);
+      }, nudgeDelay);
 
       // Nudge buttons (explicit source tagging)
       const nudgeApple = document.getElementById('nudgeApple');
       const nudgeSpotify = document.getElementById('nudgeSpotify');
       if (nudgeApple) nudgeApple.addEventListener('click', (e)=>{ e.preventDefault(); openApple('nudge'); });
+      if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); openSpotify(isDesktop, 'nudge'); });
+
+      // Sticky CTA logic
+      (function setupSticky(){
+        const sticky = document.getElementById('stickyCta');
+        const primaryBtn = document.getElementById('stickyPrimary');
+        const secondaryBtn = document.getElementById('stickySecondary');
+        if (!sticky || !primaryBtn || !secondaryBtn) return;
+        const primary = isIOS ? 'apple' : (isAndroid ? 'spotify' : 'spotify');
+        const setApplePrimary = () => {
+          primaryBtn.className = 'btn btn-apple';
+          primaryBtn.textContent = 'Follow on Apple Music';
+          primaryBtn.onclick = ()=> openApple('sticky');
+          secondaryBtn.className = 'btn-mini';
+          secondaryBtn.textContent = 'Spotify';
+          secondaryBtn.onclick = ()=> openSpotify(isDesktop, 'sticky');
+        };
+        const setSpotifyPrimary = () => {
+          primaryBtn.className = 'btn btn-spotify';
+          primaryBtn.textContent = 'Follow on Spotify';
+          primaryBtn.onclick = ()=> openSpotify(isDesktop, 'sticky');
+          secondaryBtn.className = 'btn-mini';
+          secondaryBtn.textContent = 'Apple Music';
+          secondaryBtn.onclick = ()=> openApple('sticky');
+        };
+        if (primary === 'apple') setApplePrimary(); else setSpotifyPrimary();
+        const delay = isInApp ? 2000 : 4000;
+        setTimeout(()=>{ sticky.classList.add('show'); try{ fbq('trackCustom','StickyShown',{primary}); }catch(_){ } }, delay);
+      })();
       if (nudgeSpotify) nudgeSpotify.addEventListener('click', (e)=>{ e.preventDefault(); openSpotify(isDesktop, 'nudge'); });
     });
   </script>
@@ -268,6 +336,12 @@
       <span id="t_nudge">Like it? Follow Echo Seven →</span>
       <button id="nudgeApple" class="btn-mini" type="button">Apple Music</button>
       <button id="nudgeSpotify" class="btn-mini" type="button">Spotify</button>
+    </div>
+
+    <!-- Sticky bottom CTA (shows after a few seconds) -->
+    <div id="stickyCta" class="sticky-cta" aria-live="polite" role="region" aria-label="Quick follow">
+      <button id="stickyPrimary" class="btn" type="button"></button>
+      <button id="stickySecondary" class="btn-mini" type="button"></button>
     </div>
 
     <p class="small">Direct links: <a href="https://music.apple.com/gb/artist/echo-seven/1827674820">Apple Music</a> · <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u">Spotify</a></p>
