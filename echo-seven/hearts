@@ -1,1 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Echo Seven — “Hearts In Static”</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Echo Seven’s new video ‘Hearts In Static’ is live! Best way to support: Watch on YouTube (free), then Apple Music or Spotify." />
+
+  <!-- Social previews -->
+  <meta property="og:title" content="Echo Seven — “Hearts In Static”" />
+  <meta property="og:description" content="Best way to support: Watch on YouTube (free). Also on Apple Music & Spotify." />
+  <meta property="og:type" content="video.other" />
+  <meta property="og:url" content="https://youtu.be/Byfq6oCWZH8" />
+  <meta property="og:image" content="cover.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="cover.jpg" />
+
+  <link rel="icon" href="cover.jpg" />
+
+  <style>
+    :root{
+      --bg:#0b0b10; --fg:#f7f7fb; --muted:#b8b8c7;
+      --btn-bg:#1f2937; --btn-hover:#374151;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:32px;
+      min-height:100vh;
+      font-family:system-ui, Arial, sans-serif;
+      background:var(--bg); color:var(--fg);
+      display:flex; justify-content:center; align-items:center;
+    }
+    .card{
+      background:rgba(255,255,255,0.03);
+      border-radius:16px;
+      padding:24px;
+      max-width:480px;
+      width:100%;
+      text-align:center;
+      box-shadow:0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter:blur(4px);
+    }
+    .cover{
+      width:100px; height:100px;
+      margin:0 auto 16px;
+      overflow:hidden;
+      border-radius:12px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.5);
+    }
+    .cover img{
+      width:100%; height:100%; object-fit:cover;
+    }
+    h1{font-size:1.6rem; margin:0 0 8px;}
+    p.sub{font-size:1rem; color:var(--muted); margin:0 0 20px;}
+    .btn{
+      display:block;
+      margin:12px 0;
+      padding:14px;
+      border-radius:8px;
+      background:var(--btn-bg);
+      color:var(--fg);
+      text-decoration:none;
+      font-weight:600;
+      transition:background .2s;
+    }
+    .btn:hover{background:var(--btn-hover);}
+    .btn span{display:inline-block; margin-left:8px;}
+    .footer{font-size:0.85rem; color:var(--muted); margin-top:16px;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="cover">
+      <img src="cover.jpg" alt="Echo Seven – Hearts In Static cover">
+    </div>
+    <h1>Echo Seven — “Hearts In Static”</h1>
+    <p class="sub">Watch for free, then stream on your favorite platform.</p>
+
+    <a class="btn" href="https://youtu.be/Byfq6oCWZH8" target="_blank" rel="noopener">
+      📺 Watch on YouTube (best support)
+    </a>
+    <a class="btn" href="https://music.apple.com/gb/music-video/hearts-in-static/1836460440" target="_blank" rel="noopener">
+      🎧 Watch on Apple Music (music video)
+    </a>
+    <a class="btn" href="https://music.apple.com/gb/album/hearts-in-static-single/1832322426" target="_blank" rel="noopener">
+      🎧 Listen on Apple Music (single)
+    </a>
+    <a class="btn" href="https://open.spotify.com/album/3oAEwvHK2la63hhK3DhyaW?si=d-1VGjACToCbkZhiChXdWA" target="_blank" rel="noopener">
+       Spotify (single)
+    </a>
+
+    <p class="footer">Thanks for listening — every view helps grow my channel. 💙</p>
+  </div>
+</body>
+</html>
 
