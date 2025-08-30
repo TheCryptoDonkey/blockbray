@@ -47,7 +47,12 @@
     }
     .btn:hover{background:var(--btnHover); transform: translateY(-1px)}
     .fine{margin-top:14px; color:var(--muted); font-size:13px}
-
+    .fine a{
+      color:#4da6ff; /* brighter blue for visibility */
+      text-decoration:none;
+      font-weight:600;
+    }
+    .fine a:hover{color:#82c7ff; text-decoration:underline;}
     /* Cookie/Consent bar */
     .consent{
       position: fixed; inset: auto 12px 12px 12px; z-index: 50;
@@ -65,7 +70,7 @@
 
   <!-- Meta Pixel (loads only after consent) -->
   <script>
-    const PIXEL_ID = "3718618815109659"; // <<< replace with your Meta Pixel ID
+    const PIXEL_ID = "3718618815109659"; 
     function loadPixel(){
       if (window.fbq) return;
       !function(f,b,e,v,n,t,s){
@@ -77,7 +82,7 @@
         s.parentNode.insertBefore(t,s)
       }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', PIXEL_ID);
-      fbq('consent', 'grant'); // we only call after consent
+      fbq('consent', 'grant'); 
       fbq('track', 'PageView');
       fbq('track', 'ViewContent', {
         content_name: 'Hearts In Static',
@@ -89,7 +94,7 @@
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1" />
+      src="https://www.facebook.com/tr?id=3718618815109659&ev=PageView&noscript=1" />
   </noscript>
 </head>
 <body>
@@ -125,7 +130,8 @@
     </nav>
 
     <p class="fine">
-      Artist: <a href="https://www.youtube.com/@EchoSevenBray" target="_blank" rel="noopener">YouTube</a> ·
+      Artist: 
+      <a href="https://www.youtube.com/@EchoSevenBray" target="_blank" rel="noopener">YouTube</a> ·
       <a href="https://music.apple.com/gb/artist/echo-seven/1827674820" target="_blank" rel="noopener">Apple Music</a> ·
       <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u?si=QKjZNxE7RW6sdnBnN1iC7Q" target="_blank" rel="noopener">Spotify</a>
     </p>
@@ -141,7 +147,6 @@
   </div>
 
   <script>
-    // --- Simple consent logic ---
     const cEl = document.getElementById('consent');
     const CONSENT_KEY = 'echo7_meta_consent';
     const stored = localStorage.getItem(CONSENT_KEY);
@@ -167,12 +172,10 @@
       hideConsent();
     });
 
-    // --- Helper to send Pixel events safely and still navigate ---
     function trackAndGo(eventName, params, href){
       try{
         if (window.fbq){
           fbq('trackCustom', eventName, params);
-          // Use a tiny delay so the beacon can fire
           setTimeout(()=>{ window.open(href, '_blank', 'noopener'); }, 120);
         } else {
           window.open(href, '_blank', 'noopener');
@@ -182,7 +185,6 @@
       }
     }
 
-    // --- Attach click tracking to buttons ---
     const links = [
       { id:'btn-youtube',      name:'ClickYouTube',  meta:{platform:'YouTube',  content_name:'Hearts In Static'} },
       { id:'btn-apple-video',  name:'ClickAppleMV',  meta:{platform:'AppleMusicVideo', content_name:'Hearts In Static'} },
