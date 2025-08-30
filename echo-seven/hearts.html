@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Echo Seven — “Hearts In Static”</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Echo Seven’s new video ‘Hearts In Static’ is live! Best way to support: Watch on YouTube (free). Also on Apple Music & Spotify." />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Echo Seven — “Hearts In Static”" />
+  <meta property="og:description" content="Best way to support: Watch on YouTube (free). Also on Apple Music & Spotify." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="cover.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="cover.jpg" />
+  <link rel="icon" href="cover.jpg" />
+
+  <style>
+    :root{
+      --bg:#0b0b10; --fg:#f7f7fb; --muted:#b8b8c7;
+      --btn:#1f2937; --btnHover:#374151;
+      --accent:#e11d48;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; padding:24px; background:var(--bg); color:var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .card{
+      width:min(560px, 100%); background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:18px; padding:22px; text-align:center;
+      box-shadow:0 10px 35px rgba(0,0,0,.45); backdrop-filter: blur(6px);
+    }
+    .art{width:96px; height:96px; margin:0 auto 14px; border-radius:12px; overflow:hidden; box-shadow:0 6px 22px rgba(0,0,0,.6)}
+    .art img{width:100%; height:100%; object-fit:cover}
+    h1{margin:0 0 6px; font-size:clamp(22px,4.5vw,30px)}
+    p.sub{margin:0 0 18px; font-size:clamp(14px,2.8vw,16px); color:var(--muted)}
+    .cta{display:grid; gap:12px; margin-top:12px}
+    .btn{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      padding:14px 16px; border-radius:12px; text-decoration:none; color:var(--fg);
+      background:var(--btn); border:1px solid rgba(255,255,255,0.08);
+      transition: transform .06s ease, background .2s; font-weight:700; font-size:17px;
+    }
+    .btn:hover{background:var(--btnHover); transform: translateY(-1px)}
+    .fine{margin-top:14px; color:var(--muted); font-size:13px}
+
+    /* Cookie/Consent bar */
+    .consent{
+      position: fixed; inset: auto 12px 12px 12px; z-index: 50;
+      background: #111; color:#fff; border:1px solid #2a2a2a; border-radius:12px;
+      padding:12px; display:none; gap:10px; align-items:center; justify-content:space-between;
+      box-shadow:0 10px 30px rgba(0,0,0,.5);
+    }
+    .consent p{margin:0; font-size:14px; color:#ddd}
+    .consent .actions{display:flex; gap:8px; flex:0 0 auto}
+    .consent button{
+      background:#222; color:#fff; border:1px solid #333; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:600;
+    }
+    .consent button.primary{background:#2563eb; border-color:#1e40af}
+  </style>
+
+  <!-- Meta Pixel (loads only after consent) -->
+  <script>
+    const PIXEL_ID = "3718618815109659"; // <<< replace with your Meta Pixel ID
+    function loadPixel(){
+      if (window.fbq) return;
+      !function(f,b,e,v,n,t,s){
+        if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)
+      }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', PIXEL_ID);
+      fbq('consent', 'grant'); // we only call after consent
+      fbq('track', 'PageView');
+      fbq('track', 'ViewContent', {
+        content_name: 'Hearts In Static',
+        content_category: 'Music',
+        content_ids: ['echo-seven-hearts-in-static'],
+        content_type: 'product'
+      });
+    }
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1" />
+  </noscript>
+</head>
+<body>
+  <main class="card" role="main" aria-label="Echo Seven links">
+    <div class="art"><img src="cover.jpg" alt="Echo Seven — Hearts In Static cover art"></div>
+    <h1>Echo Seven — “Hearts In Static”</h1>
+    <p class="sub">Best way to support: <strong>Watch on YouTube (free)</strong>. Also on Apple Music & Spotify.</p>
+
+    <nav class="cta" aria-label="Primary links">
+      <a id="btn-youtube" class="btn"
+         href="https://youtu.be/Byfq6oCWZH8?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
+         target="_blank" rel="noopener">
+        📺 Watch on YouTube (best support)
+      </a>
+
+      <a id="btn-apple-video" class="btn"
+         href="https://music.apple.com/gb/music-video/hearts-in-static/1836460440?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
+         target="_blank" rel="noopener">
+        🎬 Apple Music — Music Video
+      </a>
+
+      <a id="btn-apple-audio" class="btn"
+         href="https://music.apple.com/gb/album/hearts-in-static-single/1832322426?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
+         target="_blank" rel="noopener">
+        🎧 Apple Music — Single
+      </a>
+
+      <a id="btn-spotify" class="btn"
+         href="https://open.spotify.com/album/3oAEwvHK2la63hhK3DhyaW?si=d-1VGjACToCbkZhiChXdWA&utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
+         target="_blank" rel="noopener">
+        💚 Spotify — Single
+      </a>
+    </nav>
+
+    <p class="fine">
+      Artist: <a href="https://www.youtube.com/@EchoSevenBray" target="_blank" rel="noopener">YouTube</a> ·
+      <a href="https://music.apple.com/gb/artist/echo-seven/1827674820" target="_blank" rel="noopener">Apple Music</a> ·
+      <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u?si=QKjZNxE7RW6sdnBnN1iC7Q" target="_blank" rel="noopener">Spotify</a>
+    </p>
+  </main>
+
+  <!-- Consent bar (UK/EU friendly) -->
+  <div id="consent" class="consent" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <p>May we use Meta (Facebook) Pixel to improve our Instagram/Facebook ads? It helps us reach fans better.</p>
+    <div class="actions">
+      <button id="consent-deny">No thanks</button>
+      <button id="consent-allow" class="primary">Allow</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Simple consent logic ---
+    const cEl = document.getElementById('consent');
+    const CONSENT_KEY = 'echo7_meta_consent';
+    const stored = localStorage.getItem(CONSENT_KEY);
+
+    function showConsent(){ cEl.style.display = 'flex'; }
+    function hideConsent(){ cEl.style.display = 'none'; }
+
+    if (stored === 'granted') {
+      loadPixel();
+    } else if (stored === 'denied') {
+      // do nothing
+    } else {
+      showConsent();
+    }
+
+    document.getElementById('consent-allow').addEventListener('click', ()=>{
+      localStorage.setItem(CONSENT_KEY,'granted');
+      hideConsent();
+      loadPixel();
+    });
+    document.getElementById('consent-deny').addEventListener('click', ()=>{
+      localStorage.setItem(CONSENT_KEY,'denied');
+      hideConsent();
+    });
+
+    // --- Helper to send Pixel events safely and still navigate ---
+    function trackAndGo(eventName, params, href){
+      try{
+        if (window.fbq){
+          fbq('trackCustom', eventName, params);
+          // Use a tiny delay so the beacon can fire
+          setTimeout(()=>{ window.open(href, '_blank', 'noopener'); }, 120);
+        } else {
+          window.open(href, '_blank', 'noopener');
+        }
+      }catch(e){
+        window.open(href, '_blank', 'noopener');
+      }
+    }
+
+    // --- Attach click tracking to buttons ---
+    const links = [
+      { id:'btn-youtube',      name:'ClickYouTube',  meta:{platform:'YouTube',  content_name:'Hearts In Static'} },
+      { id:'btn-apple-video',  name:'ClickAppleMV',  meta:{platform:'AppleMusicVideo', content_name:'Hearts In Static'} },
+      { id:'btn-apple-audio',  name:'ClickApple',    meta:{platform:'AppleMusic', content_name:'Hearts In Static'} },
+      { id:'btn-spotify',      name:'ClickSpotify',  meta:{platform:'Spotify',   content_name:'Hearts In Static'} },
+    ];
+
+    links.forEach(({id,name,meta})=>{
+      const a = document.getElementById(id);
+      if(!a) return;
+      const url = a.getAttribute('href');
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        trackAndGo(name, meta, url);
+      });
+    });
+  </script>
+</body>
+</html>
