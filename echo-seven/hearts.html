@@ -54,30 +54,24 @@
     }
     .fine a:hover{color:#82c7ff; text-decoration:underline;}
 
-    /* Consent bar */
+    /* Slim consent */
     .consent{
-      position: fixed; inset: auto 12px 12px 12px; z-index: 50;
-      background: #111; color:#fff; border:1px solid #2a2a2a; border-radius:12px;
-      padding:12px; display:none; gap:12px; align-items:flex-start; justify-content:space-between;
-      box-shadow:0 10px 30px rgba(0,0,0,.5);
+      position:fixed; bottom:12px; left:12px; right:12px;
+      background:#111; color:#fff;
+      border:1px solid #2a2a2a; border-radius:10px;
+      padding:8px 12px; display:none;
+      font-size:13px; line-height:1.4;
+      box-shadow:0 4px 15px rgba(0,0,0,.5);
+      z-index:50;
     }
-    .consent .copy{max-width:540px}
-    .consent .title{margin:0 0 4px; font-weight:800; font-size:15px; color:#fff}
-    .consent .note{margin:0 0 6px; font-size:13px; color:#d7d7d7}
-    .consent .more{
-      margin:6px 0 0; padding:8px 10px; background:#171717; border:1px solid #2a2a2a; border-radius:8px;
-    }
-    .consent .more ul{margin:0; padding-left:18px; font-size:12px; color:#cfcfcf}
-    .consent .actions{display:flex; gap:8px}
-    .consent button{
-      background:#222; color:#fff; border:1px solid #333; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:600;
-    }
-    .consent button.primary{background:#22c55e; border-color:#16a34a}
-    .consent button.ghost{background:transparent; border-color:#444}
-    .consent .linklike{
-      background:none; border:none; color:#82c7ff; text-decoration:underline; padding:0; cursor:pointer; font-weight:600;
-    }
-    .consent .linklike:focus{outline:2px solid #82c7ff; outline-offset:2px}
+    .consent p{margin:0; font-size:13px; color:#ddd}
+    .consent .more{margin-top:6px; padding:6px 8px; background:#171717; border-radius:8px; font-size:12px}
+    .consent .more ul{margin:0; padding-left:18px}
+    .consent .actions{margin-top:6px; display:flex; gap:6px; justify-content:flex-end}
+    .consent button{padding:6px 10px; font-size:13px; border-radius:6px; cursor:pointer; font-weight:600}
+    .consent button.primary{background:#22c55e; border:1px solid #16a34a; color:#fff}
+    .consent button.ghost{background:transparent; border:1px solid #444; color:#bbb}
+    .consent .linklike{background:none; border:none; color:#82c7ff; text-decoration:underline; padding:0; cursor:pointer; font-size:13px}
   </style>
 
   <!-- Meta Pixel (loads only after consent) -->
@@ -150,26 +144,22 @@
     </p>
   </main>
 
-  <!-- Consent bar -->
+  <!-- Slim Consent bar -->
   <div id="consent" class="consent" role="dialog" aria-live="polite" aria-label="Cookie consent">
-    <div class="copy">
-      <p class="title">Help me reach more listeners?</p>
-      <p class="note">
-        I use the Meta (Facebook/Instagram) Pixel to learn which link fans tap.
-        It helps me promote new songs to the right people.
-        <button id="consent-learn" class="linklike" aria-expanded="false" aria-controls="consent-more">What’s this?</button>
-      </p>
-      <div id="consent-more" class="more" hidden>
-        <ul>
-          <li>No personal posts or messages are read.</li>
-          <li>Used only for anonymous ad stats & retargeting (e.g., “clicked YouTube”).</li>
-          <li>You can change your choice anytime via “Privacy choices”.</li>
-        </ul>
-      </div>
+    <p>
+      🎵 To help me reach more fans, may I use Meta (Facebook/Instagram) Pixel? 
+      <button id="consent-learn" class="linklike" aria-expanded="false" aria-controls="consent-more">Details</button>
+    </p>
+    <div id="consent-more" class="more" hidden>
+      <ul>
+        <li>No personal info or messages.</li>
+        <li>Only anonymous stats (e.g., “clicked YouTube”).</li>
+        <li>Change your choice anytime in “Privacy choices”.</li>
+      </ul>
     </div>
     <div class="actions">
-      <button id="consent-deny" class="ghost" aria-label="Decline analytics">No thanks</button>
-      <button id="consent-allow" class="primary" aria-label="Allow analytics (recommended)">Allow (recommended)</button>
+      <button id="consent-deny" class="ghost">No thanks</button>
+      <button id="consent-allow" class="primary">Allow</button>
     </div>
   </div>
 
@@ -179,7 +169,7 @@
     const CONSENT_KEY = 'echo7_meta_consent';
     const stored = localStorage.getItem(CONSENT_KEY);
 
-    function showConsent(){ cEl.style.display = 'flex'; }
+    function showConsent(){ cEl.style.display = 'block'; }
     function hideConsent(){ cEl.style.display = 'none'; }
 
     if (stored === 'granted') {
@@ -188,7 +178,6 @@
       // do nothing
     } else {
       showConsent();
-      setTimeout(()=>document.getElementById('consent-allow')?.focus(), 50);
     }
 
     document.getElementById('consent-allow').addEventListener('click', ()=>{
@@ -201,14 +190,14 @@
       hideConsent();
     });
 
-    // Expand/collapse “What’s this?”
+    // Expand/collapse “Details”
     const learnBtn = document.getElementById('consent-learn');
     const moreBox  = document.getElementById('consent-more');
     if (learnBtn && moreBox){
       learnBtn.addEventListener('click', ()=>{
-        const expanded = learnBtn.getAttribute('aria-expanded') === 'true';
-        learnBtn.setAttribute('aria-expanded', String(!expanded));
-        moreBox.hidden = expanded;
+        const exp = learnBtn.getAttribute('aria-expanded') === 'true';
+        learnBtn.setAttribute('aria-expanded', String(!exp));
+        moreBox.hidden = exp;
       });
     }
 
@@ -217,7 +206,6 @@
       e.preventDefault();
       localStorage.removeItem(CONSENT_KEY);
       showConsent();
-      setTimeout(()=>document.getElementById('consent-allow')?.focus(), 50);
     });
 
     // --- Helper: send Pixel events and still navigate ---
@@ -254,3 +242,4 @@
   </script>
 </body>
 </html>
+
