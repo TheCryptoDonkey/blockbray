@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <title>Echo Seven — “Hearts In Static”</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Echo Seven’s new video ‘Hearts In Static’ is live! Best way to support: Watch on YouTube (free). Also on Apple Music & Spotify." />
+  <meta name="description" content="Echo Seven’s new single ‘Hearts In Static’ is live! Best way to support: Stream the audio. Start on YouTube, Apple Music, or Spotify & subscribe 💙💚📺" />
 
   <!-- Open Graph / Social -->
   <meta property="og:title" content="Echo Seven — “Hearts In Static”" />
-  <meta property="og:description" content="Best way to support: Watch on YouTube (free). Also on Apple Music & Spotify." />
+  <meta property="og:description" content="Best way to support: Stream the audio. Start on YouTube, Apple Music, or Spotify & subscribe 💙💚📺" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="Hearts in Static.png" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -48,29 +48,41 @@
     .btn:hover{background:var(--btnHover); transform: translateY(-1px)}
     .fine{margin-top:14px; color:var(--muted); font-size:13px}
     .fine a{
-      color:#4da6ff; /* brighter blue for visibility */
+      color:#4da6ff;
       text-decoration:none;
       font-weight:600;
     }
     .fine a:hover{color:#82c7ff; text-decoration:underline;}
-    /* Cookie/Consent bar */
+
+    /* Consent bar */
     .consent{
       position: fixed; inset: auto 12px 12px 12px; z-index: 50;
       background: #111; color:#fff; border:1px solid #2a2a2a; border-radius:12px;
-      padding:12px; display:none; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px; display:none; gap:12px; align-items:flex-start; justify-content:space-between;
       box-shadow:0 10px 30px rgba(0,0,0,.5);
     }
-    .consent p{margin:0; font-size:14px; color:#ddd}
-    .consent .actions{display:flex; gap:8px; flex:0 0 auto}
+    .consent .copy{max-width:540px}
+    .consent .title{margin:0 0 4px; font-weight:800; font-size:15px; color:#fff}
+    .consent .note{margin:0 0 6px; font-size:13px; color:#d7d7d7}
+    .consent .more{
+      margin:6px 0 0; padding:8px 10px; background:#171717; border:1px solid #2a2a2a; border-radius:8px;
+    }
+    .consent .more ul{margin:0; padding-left:18px; font-size:12px; color:#cfcfcf}
+    .consent .actions{display:flex; gap:8px}
     .consent button{
       background:#222; color:#fff; border:1px solid #333; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:600;
     }
-    .consent button.primary{background:#2563eb; border-color:#1e40af}
+    .consent button.primary{background:#22c55e; border-color:#16a34a}
+    .consent button.ghost{background:transparent; border-color:#444}
+    .consent .linklike{
+      background:none; border:none; color:#82c7ff; text-decoration:underline; padding:0; cursor:pointer; font-weight:600;
+    }
+    .consent .linklike:focus{outline:2px solid #82c7ff; outline-offset:2px}
   </style>
 
   <!-- Meta Pixel (loads only after consent) -->
   <script>
-    const PIXEL_ID = "3718618815109659"; 
+    const PIXEL_ID = "3718618815109659";
     function loadPixel(){
       if (window.fbq) return;
       !function(f,b,e,v,n,t,s){
@@ -101,31 +113,31 @@
   <main class="card" role="main" aria-label="Echo Seven links">
     <div class="art"><img src="Hearts in Static.png" alt="Echo Seven — Hearts In Static cover art"></div>
     <h1>Echo Seven — “Hearts In Static”</h1>
-    <p class="sub">Best way to support: <strong>Watch on YouTube (free)</strong>. Also on Apple Music & Spotify.</p>
+    <p class="sub">Best way to support: <strong>Stream the single</strong>. Start on YouTube, Apple Music, or Spotify & subscribe 💙💚📺</p>
 
     <nav class="cta" aria-label="Primary links">
       <a id="btn-youtube" class="btn"
          href="https://youtu.be/Byfq6oCWZH8?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
          target="_blank" rel="noopener">
-        📺 Watch on YouTube (best support)
-      </a>
-
-      <a id="btn-apple-video" class="btn"
-         href="https://music.apple.com/gb/music-video/hearts-in-static/1836460440?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
-         target="_blank" rel="noopener">
-        🎬 Apple Music — Music Video
+        📺 YouTube — Single (subscribe free)
       </a>
 
       <a id="btn-apple-audio" class="btn"
          href="https://music.apple.com/gb/album/hearts-in-static-single/1832322426?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
          target="_blank" rel="noopener">
-        🎧 Apple Music — Single
+        💙 Apple Music — Single
       </a>
 
       <a id="btn-spotify" class="btn"
          href="https://open.spotify.com/album/3oAEwvHK2la63hhK3DhyaW?si=d-1VGjACToCbkZhiChXdWA&utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
          target="_blank" rel="noopener">
         💚 Spotify — Single
+      </a>
+
+      <a id="btn-apple-video" class="btn"
+         href="https://music.apple.com/gb/music-video/hearts-in-static/1836460440?utm_source=bio&utm_medium=landing&utm_campaign=hearts_in_static"
+         target="_blank" rel="noopener">
+        🎬 Apple Music — Music Video
       </a>
     </nav>
 
@@ -134,19 +146,35 @@
       <a href="https://www.youtube.com/@EchoSevenBray" target="_blank" rel="noopener">YouTube</a> ·
       <a href="https://music.apple.com/gb/artist/echo-seven/1827674820" target="_blank" rel="noopener">Apple Music</a> ·
       <a href="https://open.spotify.com/artist/1xdDfEI9pjuEXglEaK8k4u?si=QKjZNxE7RW6sdnBnN1iC7Q" target="_blank" rel="noopener">Spotify</a>
+      · <a id="privacy-choices" href="#" role="button">Privacy choices</a>
     </p>
   </main>
 
-  <!-- Consent bar (UK/EU friendly) -->
+  <!-- Consent bar -->
   <div id="consent" class="consent" role="dialog" aria-live="polite" aria-label="Cookie consent">
-    <p>May we use Meta (Facebook) Pixel to improve our Instagram/Facebook ads? It helps us reach fans better.</p>
+    <div class="copy">
+      <p class="title">Help me reach more listeners?</p>
+      <p class="note">
+        I use the Meta (Facebook/Instagram) Pixel to learn which link fans tap.
+        It helps me promote new songs to the right people.
+        <button id="consent-learn" class="linklike" aria-expanded="false" aria-controls="consent-more">What’s this?</button>
+      </p>
+      <div id="consent-more" class="more" hidden>
+        <ul>
+          <li>No personal posts or messages are read.</li>
+          <li>Used only for anonymous ad stats & retargeting (e.g., “clicked YouTube”).</li>
+          <li>You can change your choice anytime via “Privacy choices”.</li>
+        </ul>
+      </div>
+    </div>
     <div class="actions">
-      <button id="consent-deny">No thanks</button>
-      <button id="consent-allow" class="primary">Allow</button>
+      <button id="consent-deny" class="ghost" aria-label="Decline analytics">No thanks</button>
+      <button id="consent-allow" class="primary" aria-label="Allow analytics (recommended)">Allow (recommended)</button>
     </div>
   </div>
 
   <script>
+    // --- Consent logic ---
     const cEl = document.getElementById('consent');
     const CONSENT_KEY = 'echo7_meta_consent';
     const stored = localStorage.getItem(CONSENT_KEY);
@@ -160,6 +188,7 @@
       // do nothing
     } else {
       showConsent();
+      setTimeout(()=>document.getElementById('consent-allow')?.focus(), 50);
     }
 
     document.getElementById('consent-allow').addEventListener('click', ()=>{
@@ -172,6 +201,26 @@
       hideConsent();
     });
 
+    // Expand/collapse “What’s this?”
+    const learnBtn = document.getElementById('consent-learn');
+    const moreBox  = document.getElementById('consent-more');
+    if (learnBtn && moreBox){
+      learnBtn.addEventListener('click', ()=>{
+        const expanded = learnBtn.getAttribute('aria-expanded') === 'true';
+        learnBtn.setAttribute('aria-expanded', String(!expanded));
+        moreBox.hidden = expanded;
+      });
+    }
+
+    // Footer link to reopen consent
+    document.getElementById('privacy-choices')?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      localStorage.removeItem(CONSENT_KEY);
+      showConsent();
+      setTimeout(()=>document.getElementById('consent-allow')?.focus(), 50);
+    });
+
+    // --- Helper: send Pixel events and still navigate ---
     function trackAndGo(eventName, params, href){
       try{
         if (window.fbq){
@@ -185,11 +234,12 @@
       }
     }
 
+    // --- Click tracking for all main buttons ---
     const links = [
       { id:'btn-youtube',      name:'ClickYouTube',  meta:{platform:'YouTube',  content_name:'Hearts In Static'} },
-      { id:'btn-apple-video',  name:'ClickAppleMV',  meta:{platform:'AppleMusicVideo', content_name:'Hearts In Static'} },
       { id:'btn-apple-audio',  name:'ClickApple',    meta:{platform:'AppleMusic', content_name:'Hearts In Static'} },
       { id:'btn-spotify',      name:'ClickSpotify',  meta:{platform:'Spotify',   content_name:'Hearts In Static'} },
+      { id:'btn-apple-video',  name:'ClickAppleMV',  meta:{platform:'AppleMusicVideo', content_name:'Hearts In Static'} },
     ];
 
     links.forEach(({id,name,meta})=>{
